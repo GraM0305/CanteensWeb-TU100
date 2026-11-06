@@ -1,44 +1,53 @@
--- สคริปต์สร้างโครงสร้างฐานข้อมูล PostgreSQL สำหรับ TU Canteen Finder
 
--- ลบตารางเดิมหากมีอยู่ (เรียงลำดับตาม Foreign Key Dependencies)
-DROP TABLE IF EXISTS menus CASCADE;
-DROP TABLE IF EXISTS vendors CASCADE;
-DROP TABLE IF EXISTS canteens CASCADE;
+-- TU Canteen Finder
+-- PostgreSQL Database Schema
+-- Initial version: Canteens and Vendors only
 
--- 1. ตารางข้อมูลโรงอาหาร (Canteens)
+-- =========================================
+-- 1. CANTEENS TABLE
+-- =========================================
+
 CREATE TABLE canteens (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    operating_period VARCHAR(20) DEFAULT 'DAY', -- 'DAY', 'NIGHT', 'ALL'
+    operating_period VARCHAR(20) DEFAULT 'DAY',
     latitude DECIMAL(9,6) NOT NULL,
     longitude DECIMAL(9,6) NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. ตารางข้อมูลร้านค้า (Vendors)
+-- =========================================
+-- 2. VENDORS TABLE
+-- =========================================
+
 CREATE TABLE vendors (
     id SERIAL PRIMARY KEY,
-    canteen_id INT REFERENCES canteens(id) ON DELETE CASCADE,
+    canteen_id INT NOT NULL REFERENCES canteens(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
-    category VARCHAR(50) NOT NULL,             -- อาหารตามสั่ง, ก๋วยเตี๋ยว, เครื่องดื่ม, ฮาลาล ฯลฯ
-    is_halal BOOLEAN DEFAULT FALSE,
+    category VARCHAR(50) NOT NULL,
+    is_halal BOOLEAN DEFAULT NULL,
     opening_hours VARCHAR(100),
-    avg_price_level VARCHAR(20),                -- 'ประหยัด', 'ปานกลาง', 'สูง'
+    avg_price_level VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. ตารางรายการเมนูอาหาร (Menus)
-CREATE TABLE menus (
-    id SERIAL PRIMARY KEY,
-    vendor_id INT REFERENCES vendors(id) ON DELETE CASCADE,
-    name VARCHAR(100) NOT NULL,
-    price DECIMAL(6,2) NOT NULL,
-    is_recommended BOOLEAN DEFAULT FALSE
-);
+-- =========================================
+-- 3. INDEXES
+-- =========================================
 
--- สร้าง Indexes เพื่อเพิ่มความเร็วในการค้นหาและ Filter ข้อมูลใน PostgreSQL
-CREATE INDEX idx_vendors_canteen ON vendors(canteen_id);
-CREATE INDEX idx_vendors_category ON vendors(category);
-CREATE INDEX idx_vendors_halal ON vendors(is_halal);
-CREATE INDEX idx_menus_vendor ON menus(vendor_id);
+-- Search canteens by name
+CREATE INDEX idx_canteens_name
+ON canteens(name);
+
+-- Find vendors by canteen
+CREATE INDEX idx_vendors_canteen
+ON vendors(canteen_id);
+
+-- Filter vendors by food category
+CREATE INDEX idx_vendors_category
+ON vendors(category);
+
+-- Filter vendors by halal status
+CREATE INDEX idx_vendors_halal
+ON vendors(is_halal);

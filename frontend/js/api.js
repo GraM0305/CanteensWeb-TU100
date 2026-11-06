@@ -1,85 +1,717 @@
-// frontend/js/api.js
 
-// ⚠️ นำ Invoke URL ที่คัดลอกมาจาก AWS API Gateway (เมนู Stages) มาวางแทนที่ด้านล่างนี้
-const API_BASE_URL = 'https://5udg6ysrgj.execute-api.us-east-1.amazonaws.com';
+"use strict";
 
-/**
- * ดึงข้อมูลรายการโรงอาหารจาก AWS API Gateway
- */
-async function fetchCanteens() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/canteens`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+// =========================================
+// TU Canteen Finder - API Integration
+// AWS Lambda Function URL
+// =========================================
 
-        if (!response.ok) {
-            throw new Error(`HTTP Error Status: ${response.status}`);
-        }
+const API_BASE_URL =
+  "https://baflg5vkl6rogyfu775h6mcvbm0ccwct.lambda-url.us-east-1.on.aws";
 
-        const canteens = await response.json();
-        console.log('ดึงข้อมูลโรงอาหารสำเร็จ:', canteens);
-        
-        // แสดงผลการ์ดและหมุดแผนที่
-        renderCanteens(canteens);
-        return canteens;
-    } catch (error) {
-        console.error('เกิดข้อผิดพลาดในการดึงข้อมูลจาก API Gateway:', error);
+
+// =========================================
+// APPLICATION STATE
+// =========================================
+
+const state = {
+  canteens: [],
+  filteredCanteens: [],
+  selectedCanteen: null,
+
+  vendors: [],
+  vendorCache: new Map(),
+
+  searchQuery: "",
+  activePeriod: "ALL",
+
+  vendorCategory: "ALL",
+  halalOnly: false,
+
+  requestId: 0
+};
+
+
+// =========================================
+// DOM ELEMENTS
+// =========================================
+
+const searchInput = document.getElementById("canteen-search");
+const canteenList = document.getElementById("canteen-list");
+const canteenCount = document.getElementById("canteen-count");
+const canteenDetail = document.getElementById("canteen-detail");
+const apiStatus = document.getElementById("api-status");
+
+const periodButtons = document.querySelectorAll(".period-filter");
+
+
+// =========================================
+// API REQUEST
+// =========================================
+
+async function apiGet(path) {
+
+  const response = await fetch(
+    `${API_BASE_URL}/api${path}`,
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/json"
+      }
     }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok || result.success !== true) {
+    throw new Error(
+      result.error?.message || `HTTP Error: ${response.status}`
+    );
+  }
+
+  return result.data;
 }
 
-/**
- * แสดงผลข้อมูลการ์ดโรงอาหารและปักหมุดบนแผนที่ Dynamic
- * @param {Array} canteens - รายการข้อมูลโรงอาหารจาก PostgreSQL
- */
-function renderCanteens(canteens) {
-    const canteenContainer = document.getElementById('canteen-list');
-    
-    if (canteenContainer) {
-        canteenContainer.innerHTML = ''; // ล้างข้อมูลการ์ดเดิมใน HTML
 
-        canteens.forEach(canteen => {
-            // 1. สร้าง HTML Card
-            const card = document.createElement('div');
-            card.className = 'canteen-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition cursor-pointer mb-3';
-            card.setAttribute('data-category', canteen.category || '');
-            
-            // คลิกการ์ดแล้วเลื่อนแผนที่ไปยังพิกัดโรงอาหาร
-            card.onclick = () => {
-                if (typeof flyToCanteen === 'function') {
-                    flyToCanteen(canteen.lat, canteen.lng);
-                }
-            };
+// =========================================
+// HELPER FUNCTIONS
+// =========================================
 
-            const statusBadge = canteen.is_open 
-                ? '<span class="px-2 py-0.5 text-xs bg-emerald-100 text-emerald-700 rounded-full font-medium">เปิดอยู่</span>'
-                : '<span class="px-2 py-0.5 text-xs bg-slate-100 text-slate-500 rounded-full font-medium">ปิดแล้ว</span>';
+function createElement(tag, className, text) {
 
-            card.innerHTML = `
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-bold text-slate-800 text-lg">${canteen.name}</h3>
-                    ${statusBadge}
-                </div>
-                <p class="text-xs text-slate-500 mb-2">${canteen.description || ''}</p>
-                <div class="text-xs text-slate-600 flex items-center gap-1">
-                    <span>🕒 ${canteen.opening_hours || 'ไม่ระบุเวลา'}</span>
-                </div>
-            `;
+  const element = document.createElement(tag);
 
-            canteenContainer.appendChild(card);
+  if (className) {
+    element.className = className;
+  }
 
-            // 2. ปักหมุด Dynamic Marker ลงแผนที่ Leaflet (หากมีฟังก์ชันใน map.js)
-            if (typeof addDynamicMarker === 'function') {
-                addDynamicMarker(canteen);
-            }
-        });
-    }
+  if (text !== undefined && text !== null) {
+    element.textContent = text;
+  }
+
+  return element;
 }
 
-// เรียกดึงข้อมูลจาก API ทันทีเมื่อโหลดหน้าเว็บเรียบร้อย
-document.addEventListener('DOMContentLoaded', () => {
-    fetchCanteens();
+
+function getPeriodLabel(period) {
+
+  const labels = {
+    DAY: "☀️ กลางวัน",
+    NIGHT: "🌙 กลางคืน",
+    ALL: "🕒 ทุกช่วงเวลา"
+  };
+
+  return labels[period] || "ไม่ระบุช่วงเวลา";
+}
+
+
+function getPriceLabel(price) {
+
+  const labels = {
+    "ประหยัด": "ประหยัด",
+    "ปานกลาง": "ปานกลาง",
+    "สูง": "สูง"
+  };
+
+  return labels[price] || "ไม่ระบุราคา";
+}
+
+
+function getHalalLabel(value) {
+
+  if (value === true) {
+    return "ฮาลาล (ข้อมูลทดสอบ)";
+  }
+
+  if (value === false) {
+    return "ไม่ใช่ฮาลาล (ข้อมูลทดสอบ)";
+  }
+
+  return "ยังไม่มีข้อมูลยืนยัน";
+}
+
+
+// =========================================
+// LOAD CANTEENS
+// =========================================
+
+async function loadCanteens() {
+
+  try {
+
+    apiStatus.textContent = "กำลังโหลดข้อมูลโรงอาหาร...";
+
+    const data = await apiGet("/canteens");
+
+    state.canteens = data;
+    state.filteredCanteens = data;
+
+    apiStatus.textContent =
+      `เชื่อมต่อ API สำเร็จ · ${data.length} โรงอาหาร`;
+
+    filterCanteens();
+
+  } catch (error) {
+
+    console.error("Load canteens error:", error);
+
+    apiStatus.textContent = "ไม่สามารถโหลดข้อมูลโรงอาหารได้";
+
+    canteenList.replaceChildren(
+      createElement(
+        "p",
+        "api-error-message",
+        `เกิดข้อผิดพลาด: ${error.message}`
+      )
+    );
+
+  }
+
+}
+
+
+// =========================================
+// FILTER CANTEENS
+// =========================================
+
+function filterCanteens() {
+
+  const query = state.searchQuery.trim().toLowerCase();
+
+  state.filteredCanteens = state.canteens.filter(canteen => {
+
+    const matchesSearch =
+      !query ||
+      canteen.name.toLowerCase().includes(query) ||
+      (canteen.description || "").toLowerCase().includes(query);
+
+    const matchesPeriod =
+      state.activePeriod === "ALL" ||
+      canteen.operating_period === state.activePeriod;
+
+    const matchesAllDay =
+      state.activePeriod !== "ALL_DAY" ||
+      canteen.operating_period === "ALL";
+
+    return matchesSearch && matchesPeriod && matchesAllDay;
+
+  });
+
+
+  // Clear selection if selected canteen is no longer visible
+  if (
+    state.selectedCanteen &&
+    !state.filteredCanteens.some(
+      c => c.id === state.selectedCanteen.id
+    )
+  ) {
+    clearSelection();
+  }
+
+  renderCanteens();
+
+  CanteenMap.renderMarkers(
+    state.filteredCanteens
+  );
+
+}
+
+
+// =========================================
+// RENDER CANTEEN LIST
+// =========================================
+
+function renderCanteens() {
+
+  canteenList.replaceChildren();
+
+  const canteens = state.filteredCanteens;
+
+  canteenCount.textContent =
+    `พบ ${canteens.length} โรงอาหาร`;
+
+
+  if (canteens.length === 0) {
+
+    canteenList.append(
+      createElement(
+        "p",
+        "empty-state",
+        "ไม่พบโรงอาหารที่ตรงกับการค้นหา"
+      )
+    );
+
+    return;
+  }
+
+
+  canteens.forEach(canteen => {
+
+    const card = createElement(
+      "article",
+      "canteen-card"
+    );
+
+    const isSelected =
+      state.selectedCanteen?.id === canteen.id;
+
+    if (isSelected) {
+      card.classList.add("is-selected");
+    }
+
+
+    const header = createElement(
+      "div",
+      "canteen-card__header"
+    );
+
+    const title = createElement(
+      "h3",
+      "canteen-card__title",
+      canteen.name
+    );
+
+    const period = createElement(
+      "span",
+      "canteen-card__period",
+      getPeriodLabel(canteen.operating_period)
+    );
+
+    header.append(title, period);
+
+
+    const description = createElement(
+      "p",
+      "canteen-card__description",
+      canteen.description || "ไม่มีรายละเอียด"
+    );
+
+    const focusButton = createElement(
+      "button",
+      "canteen-card__select"
+    );
+    focusButton.type = "button";
+
+    focusButton.append(header, description);
+
+    const detailsLink = createElement(
+      "a",
+      "canteen-card__details",
+      "เลือกร้านค้าในโรงอาหาร →"
+    );
+    detailsLink.href =
+      `canteen.html?id=${encodeURIComponent(canteen.id)}`;
+
+    card.append(focusButton, detailsLink);
+
+
+    focusButton.addEventListener("click", () => {
+      state.selectedCanteen = canteen;
+      state.requestId++;
+      state.vendors = [];
+
+      canteenDetail.classList.add("is-hidden");
+      canteenDetail.replaceChildren();
+
+      CanteenMap.focus(canteen);
+      renderCanteens();
+    });
+
+
+    canteenList.append(card);
+
+  });
+
+}
+
+
+// =========================================
+// SELECT CANTEEN
+// =========================================
+
+async function selectCanteen(canteen) {
+
+  state.selectedCanteen = canteen;
+
+  state.vendorCategory = "ALL";
+  state.halalOnly = false;
+
+  const currentRequestId = ++state.requestId;
+
+  CanteenMap.focus(canteen);
+
+  renderCanteens();
+
+  canteenDetail.classList.remove("is-hidden");
+
+  canteenDetail.replaceChildren(
+    createElement(
+      "h2",
+      "canteen-detail__title",
+      canteen.name
+    ),
+    createElement(
+      "p",
+      "canteen-detail__loading",
+      "กำลังโหลดข้อมูลร้านค้า..."
+    )
+  );
+
+
+  try {
+
+    let vendors = state.vendorCache.get(canteen.id);
+
+    if (!vendors) {
+
+      vendors = await apiGet(
+        `/vendors?canteenId=${encodeURIComponent(canteen.id)}`
+      );
+
+      state.vendorCache.set(canteen.id, vendors);
+
+    }
+
+
+    // Prevent older requests from overwriting a newer selection
+    if (currentRequestId !== state.requestId) {
+      return;
+    }
+
+    state.vendors = vendors;
+
+    renderCanteenDetail();
+
+    canteenDetail.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest"
+    });
+
+  } catch (error) {
+
+    if (currentRequestId !== state.requestId) {
+      return;
+    }
+
+    console.error("Load vendors error:", error);
+
+    canteenDetail.replaceChildren(
+      createElement(
+        "p",
+        "api-error-message",
+        `ไม่สามารถโหลดข้อมูลร้านค้าได้: ${error.message}`
+      )
+    );
+
+  }
+
+}
+
+
+// =========================================
+// RENDER CANTEEN DETAIL
+// =========================================
+
+function renderCanteenDetail() {
+
+  canteenDetail.replaceChildren();
+
+  const canteen = state.selectedCanteen;
+
+  if (!canteen) return;
+
+
+  // Header
+  const header = createElement(
+    "div",
+    "canteen-detail__header"
+  );
+
+  const title = createElement(
+    "h2",
+    "canteen-detail__title",
+    canteen.name
+  );
+
+  const closeButton = createElement(
+    "button",
+    "canteen-detail__close",
+    "ปิด ✕"
+  );
+
+  closeButton.type = "button";
+  closeButton.addEventListener("click", clearSelection);
+
+  header.append(title, closeButton);
+
+
+  // Vendor heading
+  const vendorCount = createElement(
+    "h3",
+    "canteen-detail__section-title",
+    `ร้านค้าในโรงอาหาร (${state.vendors.length} ร้าน)`
+  );
+
+
+  // Category Filter
+  const filterContainer = createElement(
+    "div",
+    "canteen-detail__filter"
+  );
+
+  const categoryLabel = createElement(
+    "label",
+    "canteen-detail__filter-label",
+    "ประเภทอาหาร"
+  );
+
+  const categorySelect = createElement(
+    "select",
+    "canteen-detail__select"
+  );
+
+  categorySelect.add(
+    new Option("ทุกประเภท", "ALL")
+  );
+
+  const categories = [
+    ...new Set(
+      state.vendors
+        .map(v => v.category)
+        .filter(Boolean)
+    )
+  ].sort();
+
+  categories.forEach(category => {
+    categorySelect.add(
+      new Option(category, category)
+    );
+  });
+
+  categorySelect.value = state.vendorCategory;
+
+  categorySelect.addEventListener("change", event => {
+    state.vendorCategory = event.target.value;
+    renderVendorList();
+  });
+
+  filterContainer.append(categoryLabel, categorySelect);
+
+
+  // Halal Filter
+  const halalContainer = createElement(
+    "label",
+    "canteen-detail__halal-filter"
+  );
+
+  const halalCheckbox = createElement(
+    "input",
+    "canteen-detail__checkbox"
+  );
+
+  halalCheckbox.type = "checkbox";
+  halalCheckbox.checked = state.halalOnly;
+
+  halalCheckbox.addEventListener("change", event => {
+    state.halalOnly = event.target.checked;
+    renderVendorList();
+  });
+
+  const halalText = createElement(
+    "span",
+    "canteen-detail__halal-text",
+    "แสดงเฉพาะร้านที่ระบุว่าเป็นฮาลาล (ข้อมูลทดสอบ)"
+  );
+
+  halalContainer.append(halalCheckbox, halalText);
+
+
+  // Vendor List
+  const vendorList = createElement(
+    "div",
+    "canteen-detail__vendor-list"
+  );
+
+  vendorList.id = "vendor-list";
+
+
+  canteenDetail.append(
+    header,
+    vendorCount,
+    filterContainer,
+    halalContainer,
+    vendorList
+  );
+
+  renderVendorList();
+
+}
+
+
+// =========================================
+// RENDER VENDOR LIST
+// =========================================
+
+function renderVendorList() {
+
+  const vendorList = document.getElementById("vendor-list");
+
+  if (!vendorList) return;
+
+  vendorList.replaceChildren();
+
+
+  let vendors = state.vendors.filter(vendor => {
+
+    const matchesCategory =
+      state.vendorCategory === "ALL" ||
+      vendor.category === state.vendorCategory;
+
+    const matchesHalal =
+      !state.halalOnly ||
+      vendor.is_halal === true;
+
+    return matchesCategory && matchesHalal;
+
+  });
+
+
+  if (vendors.length === 0) {
+
+    vendorList.append(
+      createElement(
+        "p",
+        "empty-state",
+        "ไม่พบร้านค้าที่ตรงกับเงื่อนไข"
+      )
+    );
+
+    return;
+  }
+
+
+  vendors.forEach(vendor => {
+
+    const card = createElement(
+      "div",
+      "vendor-card"
+    );
+
+
+    const header = createElement(
+      "div",
+      "vendor-card__header"
+    );
+
+    const name = createElement(
+      "h4",
+      "vendor-card__name",
+      vendor.name
+    );
+
+    const category = createElement(
+      "span",
+      "vendor-card__category",
+      vendor.category
+    );
+
+    header.append(name, category);
+
+
+    const halalStatus = createElement(
+      "p",
+      "vendor-card__fact",
+      `สถานะ: ${getHalalLabel(vendor.is_halal)}`
+    );
+
+    const openingHours = createElement(
+      "p",
+      "vendor-card__fact",
+      `เวลาเปิด: ${vendor.opening_hours || "ไม่ระบุ"}`
+    );
+
+    const price = createElement(
+      "p",
+      "vendor-card__fact",
+      `ระดับราคา: ${getPriceLabel(vendor.avg_price_level)}`
+    );
+
+
+    card.append(
+      header,
+      halalStatus,
+      openingHours,
+      price
+    );
+
+    vendorList.append(card);
+
+  });
+
+}
+
+
+// =========================================
+// CLEAR SELECTION
+// =========================================
+
+function clearSelection() {
+
+  state.requestId++;
+
+  state.selectedCanteen = null;
+  state.vendors = [];
+
+  canteenDetail.classList.add("is-hidden");
+  canteenDetail.replaceChildren();
+
+  renderCanteens();
+
+}
+
+
+// =========================================
+// EVENT LISTENERS
+// =========================================
+
+// Search canteen by name or description
+searchInput.addEventListener("input", event => {
+
+  state.searchQuery = event.target.value;
+
+  filterCanteens();
+
 });
 
+
+// Filter canteen by operating period
+periodButtons.forEach(button => {
+
+  button.addEventListener("click", () => {
+
+    state.activePeriod = button.dataset.period;
+
+    periodButtons.forEach(btn => {
+      btn.classList.remove("is-active");
+    });
+
+    button.classList.add("is-active");
+
+    filterCanteens();
+
+  });
+
+});
+
+
+// =========================================
+// APPLICATION INITIALIZATION
+// =========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  CanteenMap.init();
+
+  loadCanteens();
+
+});

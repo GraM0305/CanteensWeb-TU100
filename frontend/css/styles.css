@@ -1,0 +1,22 @@
+@import "./base.css";
+@import "./components.css";
+@import "./page-map.css";
+@import "./page-canteen.css";
+
+/* Keep the scrollbar in the same beige and green palette. */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-beige-soft);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-river-stone);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-rainforest-green);
+}

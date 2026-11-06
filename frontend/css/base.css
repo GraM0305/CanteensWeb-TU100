@@ -1,0 +1,62 @@
+/* Brand palette: Natural Beige 60%, River Stone 30%, Rainforest Green 10%. */
+:root {
+  --color-white: #ffffff;
+  --color-natural-beige: #dcd0a8;
+  --color-river-stone: #4a9782;
+  --color-rainforest-green: #004030;
+  --color-beige-soft: #e8dfc7;
+  --color-green-border: rgb(0 64 48 / 18%);
+  --color-river-soft: rgb(74 151 130 / 18%);
+  --color-text-muted: rgb(0 64 48 / 76%);
+}
+
+/* Theme the Tailwind color utilities used by both pages without changing layout. */
+.bg-slate-50,
+.bg-white {
+  background-color: var(--color-natural-beige);
+}
+
+/* Use Natural Beige for the page's main structural surfaces. */
+.bg-natural-beige {
+  background-color: var(--color-natural-beige);
+}
+
+.bg-slate-100,
+.bg-amber-50 {
+  background-color: var(--color-white);
+}
+
+.bg-slate-200 {
+  background-color: var(--color-river-stone);
+}
+
+.border-slate-200,
+.border-amber-200 {
+  border-color: var(--color-green-border);
+}
+
+.text-slate-800,
+.text-slate-700,
+.text-slate-600,
+.text-slate-500,
+.text-amber-800,
+.text-emerald-600,
+.text-emerald-700 {
+  color: var(--color-rainforest-green);
+}
+
+.text-slate-400 {
+  color: var(--color-text-muted);
+}
+
+.bg-emerald-50 {
+  background-color: var(--color-river-soft);
+}
+
+.border-emerald-200 {
+  border-color: rgb(74 151 130 / 48%);
+}
+
+.focus\:ring-emerald-500:focus {
+  --tw-ring-color: var(--color-river-stone);
+}
