@@ -1,5 +1,12 @@
 
 const { Pool } = require("pg");
+const fs = require("fs");
+const path = require("path");
+
+const ca = fs.readFileSync(
+  path.join(__dirname, "../../certs/us-east-1-bundle.pem"),
+  "utf8"
+);
 
 const pool = new Pool({
   host: process.env.DB_HOST,
@@ -8,6 +15,7 @@ const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   ssl: {
+    ca,
     rejectUnauthorized: true,
   },
   connectionTimeoutMillis: 5000,
@@ -18,3 +26,4 @@ pool.on("error", (error) => {
 });
 
 module.exports = pool;
+

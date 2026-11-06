@@ -1,75 +1,237 @@
-// 1. ตัวแปรสำหรับเก็บอินสแตนซ์ของแผนที่ และ Object สำหรับอ้างอิง Markers ของแต่ละโรงอาหาร
-let map;
-const canteenMarkers = {};
 
-// 2. ข้อมูลพิกัดและรายละเอียดของโรงอาหารทั้ง 8 แห่ง มธ.รังสิต
-const canteensData = [
-  { id: 1, name: "โรงอาหาร SC", lat: 14.069600, lng: 100.604400, period: "DAY", desc: "อาคารเรียนรวม SC3" },
-  { id: 2, name: "โรงอาหาร JC", lat: 14.071800, lng: 100.605500, period: "DAY", desc: "ใกล้อาคารคณะวารสารศาสตร์ฯ" },
-  { id: 3, name: "โรงอาหารกรีน (กลางวัน)", lat: 14.074100, lng: 100.602600, period: "DAY", desc: "อาคารกรีนแคนทีน (โหมดกลางวัน)" },
-  { id: 4, name: "โรงอาหารกรีนดึก", lat: 14.074100, lng: 100.602600, period: "NIGHT", desc: "อาคารกรีนแคนทีน (โหมดร้านดึก)" },
-  { id: 5, name: "โรงอาหารทิวสน", lat: 14.076200, lng: 100.606200, period: "DAY", desc: "ริมสระว่ายน้ำ มธ." },
-  { id: 6, name: "โรงอาหารวิศวะ", lat: 14.076400, lng: 100.603200, period: "DAY", desc: "ใต้ตึกคณะวิศวกรรมศาสตร์" },
-  { id: 7, name: "โรงอาหารปิยชาติ", lat: 14.071200, lng: 100.609800, period: "DAY", desc: "อาคารปิยชาติ โซนวิทยาศาสตร์สุขภาพ" },
-  { id: 8, name: "OR Space", lat: 14.078200, lng: 100.607500, period: "ALL", desc: "คอมมูนิตี้มอลล์ OR Space" }
-];
+"use strict";
 
-// 3. ฟังก์ชันเริ่มต้นสร้างแผนที่ Leaflet (Initialize Map)
-function initMap() {
-  // ตั้งพิกัดศูนย์กลาง มธ.รังสิต [Latitude, Longitude] ซูมระดับ 15
-  map = L.map('map').setView([14.0740, 100.6050], 15);
+// =========================================
+// TU Canteen Finder - Dynamic Leaflet Map
+// =========================================
 
-  // ดึง TileLayer จาก OpenStreetMap
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '© OpenStreetMap'
-  }).addTo(map);
-}
+const CanteenMap = (() => {
 
-// 4. ฟังก์ชันปักหมุดโรงอาหารทั้งหมดทั้ง 8 แห่งลงบนแผนที่
-function renderCanteenMarkers() {
-  canteensData.forEach(canteen => {
-    const popupContent = `
-      <div class="p-1">
-        <h4 class="font-bold text-slate-800 text-sm mb-1">${canteen.name}</h4>
-        <p class="text-xs text-slate-500 mb-2">📍 ${canteen.desc}</p>
-        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-          canteen.period === 'NIGHT' 
-            ? 'bg-amber-100 text-amber-700' 
-            : 'bg-emerald-100 text-emerald-700'
-        }">
-          ${canteen.period === 'NIGHT' ? 'เปิดร้านดึก 🌙' : 'เปิดกลางวัน 🟢'}
-        </span>
-      </div>
-    `;
+  let map = null;
+  let markerGroup = null;
 
-    // สร้าง Marker และผูก Popup ข้อมูล
-    const marker = L.marker([canteen.lat, canteen.lng])
-      .addTo(map)
-      .bindPopup(popupContent);
+  const MAP_CENTER = [14.0735, 100.6050];
+  const MAP_ZOOM = 15;
 
-    // เก็บอ้างอิง Marker ไว้ใน Object ตาม canteen.id
-    canteenMarkers[canteen.id] = marker;
-  });
-}
 
-// 5. ฟังก์ชันซิงก์เมื่อผู้ใช้คลิกการ์ดฝั่งขวา ให้แผนที่ฝั่งซ้ายเลื่อน (FlyTo) ไปยังหมุดและเปิด Popup
-function flyToCanteen(lat, lng, canteenId) {
-  if (!map) return;
+  // Initialize map
+  function init() {
 
-  map.flyTo([lat, lng], 17, {
-    duration: 1.2,
-    easeLinearity: 0.25
-  });
+    if (map) return;
 
-  if (canteenId && canteenMarkers[canteenId]) {
-    canteenMarkers[canteenId].openPopup();
+    map = L.map("map").setView(
+      MAP_CENTER,
+      MAP_ZOOM
+    );
+
+    L.tileLayer(
+      "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors"
+      }
+    ).addTo(map);
+
+
+    // Cluster overlapping markers
+    markerGroup = L.markerClusterGroup({
+
+      maxClusterRadius: 8,
+
+      spiderfyOnMaxZoom: true,
+
+      spiderfyDistanceMultiplier: 1.5,
+
+      zoomToBoundsOnClick: false,
+
+      showCoverageOnHover: false,
+
+      spiderLegPolylineOptions: {
+        weight: 1.5,
+        color: "#64748b",
+        opacity: 0.7
+      }
+
+    });
+
+
+    // Click cluster to separate overlapping markers
+    markerGroup.on("clusterclick", event => {
+      event.layer.spiderfy();
+    });
+
+    map.addLayer(markerGroup);
+
   }
-}
 
-// 6. โหลดแผนที่และปักหมุดเมื่อสร้าง DOM เสร็จสิ้น
-document.addEventListener('DOMContentLoaded', () => {
-  initMap();
-  renderCanteenMarkers();
+
+  // Build marker popup
+  function createPopup(canteen) {
+
+    const container = document.createElement("div");
+    container.className = "map-popup";
+
+    const title = document.createElement("h3");
+    title.className = "map-popup__title";
+    title.textContent = canteen.name;
+
+    const description = document.createElement("p");
+    description.className = "map-popup__description";
+    description.textContent =
+      canteen.description || "ไม่มีรายละเอียด";
+
+
+    const periodLabels = {
+      DAY: "☀️ ช่วงกลางวัน",
+      NIGHT: "🌙 ช่วงกลางคืน",
+      ALL: "🕒 ทุกช่วงเวลา"
+    };
+
+    const period = document.createElement("p");
+    period.className = "map-popup__period";
+    period.textContent =
+      periodLabels[canteen.operating_period] || "ไม่ระบุช่วงเวลา";
+
+
+    const link = document.createElement("a");
+
+    link.href =
+      `canteen.html?id=${encodeURIComponent(canteen.id)}`;
+
+    link.textContent = "ดูข้อมูลโรงอาหารและร้านค้าภายใน →";
+
+    link.className = "map-popup__link";
+
+
+    container.append(
+      title,
+      description,
+      period,
+      link
+    );
+
+    return container;
+
+  }
+
+
+  // Render all canteen markers from RDS API data
+  function renderMarkers(canteens) {
+
+    if (!map || !markerGroup) return;
+
+    markerGroup.clearLayers();
+
+
+    const markers = [];
+
+    canteens.forEach(canteen => {
+
+      const latitude = Number(canteen.latitude);
+      const longitude = Number(canteen.longitude);
+
+      // Validate GPS coordinates
+      if (
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude) ||
+        latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180
+      ) {
+        console.warn(
+          "Invalid coordinates:",
+          canteen.id,
+          canteen.name
+        );
+        return;
+      }
+
+
+      const marker = L.marker(
+        [latitude, longitude],
+        {
+          title: canteen.name,
+          alt: canteen.name
+        }
+      );
+
+      marker.bindPopup(
+        createPopup(canteen),
+        {
+          maxWidth: 260
+        }
+      );
+
+      markers.push(marker);
+
+    });
+
+
+    markerGroup.addLayers(markers);
+
+
+    // Fit map to all markers
+    if (markers.length > 0) {
+
+      const bounds = markerGroup.getBounds();
+
+      if (bounds.isValid()) {
+
+        map.fitBounds(
+          bounds,
+          {
+            padding: [40, 40],
+            maxZoom: 16
+          }
+        );
+
+      }
+
+    }
+
+    console.log(
+      `Rendered ${markers.length} canteen markers`
+    );
+
+  }
+
+
+  // Focus on a canteen
+  function focus(canteen) {
+
+    if (!map || !canteen) return;
+
+    const latitude = Number(canteen.latitude);
+    const longitude = Number(canteen.longitude);
+
+    if (
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude)
+    ) {
+      return;
+    }
+
+    map.flyTo(
+      [latitude, longitude],
+      17,
+      {
+        duration: 1
+      }
+    );
+
+  }
+
+
+  return {
+    init,
+    renderMarkers,
+    focus
+  };
+
+})();
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  CanteenMap.init();
 });
-

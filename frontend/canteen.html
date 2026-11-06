@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>รายละเอียดโรงอาหาร - TU Canteen Finder</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="bg-slate-50 font-sans text-slate-800 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 shadow-sm">
+    <div class="max-w-5xl mx-auto px-5 py-4">
+
+      <a
+        href="index.html"
+        class="text-sm text-emerald-600 font-semibold hover:text-emerald-700"
+      >
+        ← กลับไปหน้าแผนที่
+      </a>
+
+      <h1 class="text-xl font-bold mt-3">
+        TU Canteen <span class="text-emerald-600">Finder</span>
+      </h1>
+
+    </div>
+  </header>
+
+
+  <main class="max-w-5xl mx-auto px-5 py-6 space-y-6">
+
+    <!-- Loading / Error Status -->
+    <div
+      id="page-status"
+      role="status"
+      aria-live="polite"
+      class="page-status"
+    >
+      กำลังโหลดข้อมูลโรงอาหาร...
+    </div>
+
+
+    <!-- Canteen Information -->
+    <section
+      id="canteen-info"
+      class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5"
+    >
+    </section>
+
+
+    <!-- Test Data Notice -->
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
+      ข้อมูลร้านค้าและสถานะฮาลาลในหน้านี้เป็นข้อมูลตัวอย่างสำหรับทดสอบระบบ
+      ไม่ใช่ข้อมูลจริงที่ได้รับการยืนยัน
+    </div>
+
+
+    <!-- Vendors Section -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-5">
+
+      <div class="flex justify-between items-center gap-3">
+        <h2 class="font-bold text-lg">
+          ร้านค้าภายในโรงอาหาร
+        </h2>
+
+        <span
+          id="vendor-count"
+          class="text-xs text-slate-500"
+        >
+          0 ร้าน
+        </span>
+      </div>
+
+
+      <!-- Filters -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <div>
+          <label
+            for="category-filter"
+            class="block text-xs font-semibold text-slate-600 mb-2"
+          >
+            ประเภทอาหาร
+          </label>
+
+          <select
+            id="category-filter"
+            class="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white"
+          >
+            <option value="ALL">ทุกประเภท</option>
+          </select>
+        </div>
+
+
+        <div>
+          <label
+            for="halal-filter"
+            class="block text-xs font-semibold text-slate-600 mb-2"
+          >
+            สถานะฮาลาล
+          </label>
+
+          <select
+            id="halal-filter"
+            class="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white"
+          >
+            <option value="ALL">ทุกสถานะ</option>
+            <option value="true">ฮาลาล (ข้อมูลทดสอบ)</option>
+            <option value="false">ไม่ใช่ฮาลาล (ข้อมูลทดสอบ)</option>
+            <option value="unknown">ยังไม่มีข้อมูล</option>
+          </select>
+        </div>
+
+      </div>
+
+
+      <!-- Vendor List -->
+      <div
+        id="vendor-list"
+        class="grid grid-cols-1 md:grid-cols-2 gap-3"
+      >
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <script src="js/canteen-detail.js"></script>
+
+</body>
+</html>

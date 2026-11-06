@@ -1,142 +1,199 @@
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>TU Canteen Finder - ค้นหาโรงอาหาร มธ.รังสิต</title>
-  
-  <!-- Tailwind CSS CDN -->
+
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
+
   <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  
-  <!-- Custom CSS (แยกมาจาก index.html) -->
-  <link rel="stylesheet" href="css/style.css" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+  />
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body class="bg-slate-50 font-sans text-slate-800 antialiased h-screen overflow-hidden">
 
-  <!-- 1. Header Bar ด้านบนสุด -->
-  <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between z-10 relative shadow-sm">
+  <!-- Header -->
+  <!-- Header uses the primary Natural Beige brand color. -->
+  <header class="h-16 bg-natural-beige border-b border-slate-200 px-6
+                 flex items-center justify-between z-10 relative shadow-sm">
+
     <div class="flex items-center gap-3">
       <span class="text-2xl">🍔</span>
+
       <h1 class="text-xl font-bold tracking-tight text-slate-800">
         TU Canteen <span class="text-emerald-600">Finder</span>
       </h1>
     </div>
-    <div class="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-semibold border border-emerald-200">
-      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-      ธรรมศาสตร์ ศูนย์รังสิต (8 โรงอาหาร)
+
+    <div class="text-xs font-semibold text-emerald-700
+                bg-emerald-50 px-3 py-1.5 rounded-full
+                border border-emerald-200">
+      ธรรมศาสตร์ ศูนย์รังสิต
     </div>
   </header>
 
-  <!-- 2. Main Split Container: แผนที่ฝั่งซ้าย (60%) | รายการฝั่งขวา (40%) -->
-  <main class="flex flex-col lg:flex-row h-[calc(100vh-4rem)] w-full">
-    
-    <!-- ฝั่งซ้าย: Interactive Leaflet Map Canvas -->
-    <section class="flex-1 h-[45vh] lg:h-full relative bg-slate-200 order-1 lg:order-1">
+
+  <!-- Main Content -->
+  <!-- Keep the main page area and its map/sidebar surfaces Natural Beige. -->
+  <main class="flex flex-col lg:flex-row h-[calc(100vh-4rem)] w-full bg-natural-beige">
+
+    <!-- Map -->
+    <section class="flex-1 h-[45vh] lg:h-full relative bg-natural-beige order-1">
       <div id="map" class="w-full h-full"></div>
     </section>
 
-    <!-- ฝั่งขวา: Filter Controls Header & Scrollable Canteen List -->
-    <section class="w-full lg:w-[420px] xl:w-[460px] h-[55vh] lg:h-full flex flex-col bg-slate-50 border-t lg:border-t-0 lg:border-l border-slate-200 shrink-0 order-2 lg:order-2">
-      
-      <!-- Filter Controls Header -->
-      <div class="p-4 bg-white border-b border-slate-200 space-y-3 shadow-sm">
-        <!-- Search Input Bar -->
+
+    <!-- Canteen Sidebar -->
+    <section class="w-full lg:w-[420px] xl:w-[460px]
+                    h-[55vh] lg:h-full flex flex-col
+                    bg-natural-beige border-t lg:border-t-0
+                    lg:border-l border-slate-200 shrink-0 order-2">
+
+      <!-- Search and Filters -->
+        <!-- Search field uses Natural Beige instead of white. -->
+      <div class="p-4 bg-natural-beige border-b border-slate-200 space-y-3 shadow-sm">
+
         <div class="relative">
-          <input type="text" placeholder="ค้นหาโรงอาหาร หรือประเภทอาหาร..." 
-                 class="w-full pl-10 pr-4 py-2.5 bg-slate-100 rounded-xl text-sm border-0 focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all outline-none">
-          <span class="absolute left-3 top-3 text-slate-400 text-sm">🔍</span>
-        </div>
-        
-        <!-- Category Filter Chips -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-medium">
-          <button class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold whitespace-nowrap shadow-sm">ทั้งหมด</button>
-          <button class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 whitespace-nowrap transition-colors">🟢 เปิดอยู่</button>
-          <button class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 whitespace-nowrap transition-colors">🌙 กรีนดึก</button>
-          <button class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 whitespace-nowrap transition-colors">☪️ ฮาลาล</button>
-        </div>
-      </div>
+          
+          <input
+            id="canteen-search"
+            type="search"
+            placeholder="ค้นหาชื่อโรงอาหาร..."
+            class="w-full pl-10 pr-4 py-2.5 bg-slate-100
+                   rounded-xl text-sm border-0
+                   focus:ring-2 focus:ring-emerald-500
+                   focus:bg-white outline-none"
+          >
 
-      <!-- Scrollable Canteen List -->
-      <div class="flex-1 overflow-y-auto p-4 space-y-3">
-        
-        <!-- Canteen Card 1: SC -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer group" onclick="flyToCanteen(14.0696, 100.6044)">
-          <div class="flex justify-between items-start mb-2">
-            <div>
-              <h3 class="font-bold text-slate-800 group-hover:text-emerald-600 transition-colors">โรงอาหาร SC</h3>
-              <p class="text-xs text-slate-500 mt-0.5">📍 อาคารเรียนรวม SC3</p>
-            </div>
-            <span class="bg-emerald-50 text-emerald-600 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-emerald-100">เปิดอยู่ 🟢</span>
-          </div>
-          <p class="text-xs text-slate-600 line-clamp-1 mb-3">ข้าวมันไก่ป้าอ้วน, ก๋วยเตี๋ยวป๊อก, ร้านน้ำปั่น</p>
-          <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
-            <span>🕒 06:30 - 18:00 น.</span>
-            <span class="text-emerald-600 font-medium group-hover:translate-x-0.5 transition-transform">ดูบนแผนที่ →</span>
-          </div>
+          <span class="absolute left-3 top-3 text-slate-400 text-sm">
+            🔍
+          </span>
         </div>
 
-        <!-- Canteen Card 2: Green Day -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer group" onclick="flyToCanteen(14.0741, 100.6026)">
-          <div class="flex justify-between items-start mb-2">
-            <div>
-              <h3 class="font-bold text-slate-800 group-hover:text-emerald-600 transition-colors">โรงอาหารกรีน (กลางวัน)</h3>
-              <p class="text-xs text-slate-500 mt-0.5">📍 อาคารกรีนแคนทีน (โหมดกลางวัน)</p>
-            </div>
-            <span class="bg-emerald-50 text-emerald-600 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-emerald-100">เปิดอยู่ 🟢</span>
-          </div>
-          <p class="text-xs text-slate-600 line-clamp-1 mb-3">ข้าวแกงปักษ์ใต้, ส้มตำไก่ย่าง, ชานมไข่มุก</p>
-          <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
-            <span>🕒 07:00 - 15:00 น.</span>
-            <span class="text-emerald-600 font-medium group-hover:translate-x-0.5 transition-transform">ดูบนแผนที่ →</span>
-          </div>
-        </div>
+        <!-- Operating Period Filter -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
 
-        <!-- Canteen Card 3: Green Night -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-amber-300 transition-all cursor-pointer group" onclick="flyToCanteen(14.0741, 100.6026)">
-          <div class="flex justify-between items-start mb-2">
-            <div>
-              <h3 class="font-bold text-slate-800 group-hover:text-amber-600 transition-colors">โรงอาหารกรีนดึก</h3>
-              <p class="text-xs text-slate-500 mt-0.5">📍 อาคารกรีนแคนทีน (โหมดร้านดึก)</p>
-            </div>
-            <span class="bg-amber-50 text-amber-600 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-amber-100">เปิด 17:00 🌙</span>
-          </div>
-          <p class="text-xs text-slate-600 line-clamp-1 mb-3">บะหมี่โหน่ง, ข้าวต้มมืด, โรตีชาชัก</p>
-          <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
-            <span>🕒 17:00 - 02:00 น.</span>
-            <span class="text-amber-600 font-medium group-hover:translate-x-0.5 transition-transform">ดูบนแผนที่ →</span>
-          </div>
-        </div>
+          <button
+            type="button"
+            class="period-filter is-active"
+            data-period="ALL"
+          >
+            ทั้งหมด
+          </button>
 
-        <!-- Canteen Card 4: OR Space -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer group" onclick="flyToCanteen(14.0782, 100.6075)">
-          <div class="flex justify-between items-start mb-2">
-            <div>
-              <h3 class="font-bold text-slate-800 group-hover:text-emerald-600 transition-colors">OR Space</h3>
-              <p class="text-xs text-slate-500 mt-0.5">📍 โครงการ คอมมูนิตี้มอลล์ OR Space</p>
-            </div>
-            <span class="bg-emerald-50 text-emerald-600 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-emerald-100">เปิดอยู่ 🟢</span>
-          </div>
-          <p class="text-xs text-slate-600 line-clamp-1 mb-3">KFC, Cafe Amazon, ร้านอาหารนานาชาติ</p>
-          <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
-            <span>🕒 ทุกช่วงเวลา</span>
-            <span class="text-emerald-600 font-medium group-hover:translate-x-0.5 transition-transform">ดูบนแผนที่ →</span>
-          </div>
+          <button
+            type="button"
+            class="period-filter"
+            data-period="DAY"
+          >
+            ☀️ กลางวัน
+          </button>
+
+          <button
+            type="button"
+            class="period-filter"
+            data-period="NIGHT"
+          >
+            🌙 กลางคืน
+          </button>
+
+          <button
+            type="button"
+            class="period-filter"
+            data-period="ALL_DAY"
+          >
+            เปิดทุกช่วง
+          </button>
+
         </div>
 
       </div>
+
+
+      <!-- Content Area -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+
+        <!-- API Status -->
+        <div
+          id="api-status"
+          role="status"
+          aria-live="polite"
+          class="text-xs text-slate-500"
+        >
+          กำลังเชื่อมต่อ API...
+        </div>
+
+        <!-- Test Data Notice -->
+        <div class="bg-amber-50 border border-amber-200
+                    text-amber-800 rounded-xl p-3 text-xs">
+          ข้อมูลที่แสดงเป็นข้อมูลตัวอย่างสำหรับทดสอบระบบ
+          ยังไม่ได้รับการยืนยันว่าเป็นข้อมูลจริง
+        </div>
+
+        <!-- Canteen Count -->
+        <div class="flex justify-between items-center">
+          <h2 class="font-bold text-slate-800">
+            รายการโรงอาหาร
+          </h2>
+
+          <span
+            id="canteen-count"
+            class="text-xs text-slate-500"
+          >
+            0 โรงอาหาร
+          </span>
+        </div>
+
+        <!-- Dynamic Canteen List -->
+        <div
+          id="canteen-list"
+          class="space-y-3"
+          aria-live="polite"
+        >
+        </div>
+
+        <!-- Selected Canteen Detail -->
+        <section
+          id="canteen-detail"
+          class="is-hidden bg-white rounded-2xl border
+                 border-slate-200 p-4 shadow-sm space-y-4"
+        >
+        </section>
+
+      </div>
+
     </section>
 
   </main>
 
+
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Custom Application Scripts -->
+  <!-- Leaflet Marker Cluster -->
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+
+  <!-- Application Scripts -->
   <script src="js/map.js"></script>
-  <script src="js/filter.js"></script>
   <script src="js/api.js"></script>
 
 </body>
