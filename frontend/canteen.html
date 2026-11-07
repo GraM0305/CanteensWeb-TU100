@@ -54,10 +54,9 @@
     </section>
 
 
-    <!-- Test Data Notice -->
+    <!-- Restaurant Data Notice -->
     <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
-      ข้อมูลร้านค้าและสถานะฮาลาลในหน้านี้เป็นข้อมูลตัวอย่างสำหรับทดสอบระบบ
-      ไม่ใช่ข้อมูลจริงที่ได้รับการยืนยัน
+      ราคาและเวลาเปิด-ปิดอ้างอิงจากแหล่งข้อมูลที่ระบุไว้ โปรดตรวจสอบกับร้านอีกครั้ง
     </div>
 
 
@@ -103,7 +102,7 @@
             for="halal-filter"
             class="block text-xs font-semibold text-slate-600 mb-2"
           >
-            สถานะฮาลาล
+            ข้อมูลฮาลาล
           </label>
 
           <select
@@ -111,9 +110,9 @@
             class="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white"
           >
             <option value="ALL">ทุกสถานะ</option>
-            <option value="true">ฮาลาล (ข้อมูลทดสอบ)</option>
-            <option value="false">ไม่ใช่ฮาลาล (ข้อมูลทดสอบ)</option>
-            <option value="unknown">ยังไม่มีข้อมูล</option>
+            <option value="true">ระบุว่าเป็นฮาลาล</option>
+            <option value="false">ระบุว่าไม่ใช่ฮาลาล</option>
+            <option value="unknown">ไม่ระบุ</option>
           </select>
         </div>
 

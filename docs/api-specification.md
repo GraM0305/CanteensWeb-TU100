@@ -163,9 +163,10 @@ GET /api/canteens/1/vendors
       "canteen_id": 1,
       "name": "ร้านอาหารตามสั่ง",
       "category": "อาหารตามสั่ง",
-      "is_halal": false,
+      "is_halal": null,
       "opening_hours": "08:00-16:00",
-      "avg_price_level": 2
+      "starting_price": 35,
+      "source_url": "https://thammasat-food.netlify.app/"
     }
   ]
 }
@@ -190,9 +191,10 @@ GET /api/canteens/1/vendors
       "canteen_id": 1,
       "name": "ร้านอาหารตามสั่ง",
       "category": "อาหารตามสั่ง",
-      "is_halal": false,
+      "is_halal": null,
       "opening_hours": "08:00-16:00",
-      "avg_price_level": 2
+      "starting_price": 35,
+      "source_url": "https://thammasat-food.netlify.app/"
     }
   ]
 }
@@ -222,9 +224,10 @@ GET /api/vendors/1
     "canteen_id": 1,
     "name": "ร้านอาหารตามสั่ง",
     "category": "อาหารตามสั่ง",
-    "is_halal": false,
+    "is_halal": null,
     "opening_hours": "08:00-16:00",
-    "avg_price_level": 2
+    "starting_price": 35,
+    "source_url": "https://thammasat-food.netlify.app/"
   }
 }
 ```
@@ -308,6 +311,21 @@ GET /api/vendors/1/menus
 6. ตรวจสอบค่าที่รับมาจาก URL เช่น `:id` ก่อนนำไปใช้งาน
 7. จัดการข้อผิดพลาดอย่างเหมาะสม ไม่ส่งรายละเอียดภายในระบบหรือข้อมูลสำคัญกลับไปยังผู้ใช้งาน
 8. ใช้ Environment Variables สำหรับจัดเก็บค่าการตั้งค่าที่แตกต่างกันในแต่ละสภาพแวดล้อม
+
+### 6.1 นำเข้าข้อมูลร้านอาหาร
+
+เว็บที่เผยแพร่อยู่เรียกใช้ Cloudflare Worker และ Cloudflare D1 ให้นำ migration
+ใน `backend/cloudflare/migrations/` ไปใช้ตามลำดับ (`0002` ถึง `0004`)
+และ deploy Worker ใหม่หลัง migration สำเร็จ คำสั่งสำหรับฐานข้อมูลจริงคือ
+`npx wrangler d1 migrations apply canteensweb-tu --remote` และ
+`npx wrangler deploy` จาก `backend/cloudflare/`. Migration `0004`
+ลบฟิลด์ระดับราคาเดิมออก โดย `starting_price` เป็นฟิลด์ราคาตัวเลขเพียงฟิลด์เดียว
+และข้อมูลสถานะฮาลาลจะเป็น `null` เมื่อไฟล์ต้นทางไม่ได้ระบุไว้
+
+สำหรับฐานข้อมูล PostgreSQL ให้รัน
+`database/migrations/002_vendor_restaurant_details.sql` ก่อน
+`database/seed_data.sql` โดย seed จะอัปเดตข้อมูลร้านชุดเดิมและแทนที่เฉพาะ
+ข้อมูลตัวอย่างเดิมที่ระบุไว้ในสคริปต์
 
 ## 7. ขอบเขตการพัฒนาในระยะแรก
 

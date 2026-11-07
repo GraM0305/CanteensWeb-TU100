@@ -265,6 +265,13 @@
   font-size: 0.75rem;
 }
 
+.vendor-card__source {
+  color: var(--color-river-stone);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .canteen-info__title {
   margin: 0 0 0.75rem;
   color: var(--color-rainforest-green);

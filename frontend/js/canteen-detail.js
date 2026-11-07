@@ -5,10 +5,10 @@
 // TU Canteen Finder
 // Canteen Detail Page
 // =========================================
+//"https://baflg5vkl6rogyfu775h6mcvbm0ccwct.lambda-url.us-east-1.on.aws";
 
 const API_BASE_URL =
-  "https://baflg5vkl6rogyfu775h6mcvbm0ccwct.lambda-url.us-east-1.on.aws";
-
+  "https://canteensweb-api.supanat-upa.workers.dev";
 
 // =========================================
 // PAGE STATE
@@ -106,21 +106,23 @@ function getPeriodLabel(period) {
 function getHalalLabel(value) {
 
   if (value === true) {
-    return "ฮาลาล (ข้อมูลทดสอบ)";
+    return "ระบุว่าเป็นฮาลาล";
   }
 
   if (value === false) {
-    return "ไม่ใช่ฮาลาล (ข้อมูลทดสอบ)";
+    return "ระบุว่าไม่ใช่ฮาลาล";
   }
 
-  return "ยังไม่มีข้อมูลยืนยัน";
+  return "ไม่ระบุ";
 
 }
 
 
-function getPriceLabel(price) {
+function getStartingPriceLabel(price) {
 
-  return price || "ไม่ระบุระดับราคา";
+  return Number.isFinite(price)
+    ? `${price} บาท`
+    : "ไม่ระบุ";
 
 }
 
@@ -331,9 +333,8 @@ function renderVendors() {
     const price = createElement(
       "p",
       "vendor-card__fact",
-      `ระดับราคา: ${getPriceLabel(vendor.avg_price_level)}`
+      `ราคาเริ่มต้น: ${getStartingPriceLabel(vendor.starting_price)}`
     );
-
 
     card.append(
       heading,
@@ -341,6 +342,18 @@ function renderVendors() {
       hours,
       price
     );
+
+    if (vendor.source_url) {
+      const source = createElement(
+        "a",
+        "vendor-card__source",
+        "แหล่งข้อมูล"
+      );
+      source.href = vendor.source_url;
+      source.target = "_blank";
+      source.rel = "noopener noreferrer";
+      card.append(source);
+    }
 
     vendorList.append(card);
 

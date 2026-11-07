@@ -19,3 +19,13 @@ npm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
+# Local Cloudflare and Postman settings
+.wrangler/
+.postman/
+postman/globals/
+
+# Database backups
+backups/
+
+# Local deployment archive
+backend/canteens-api.zip

@@ -97,7 +97,8 @@ router.get("/:id/vendors", async (req, res) => {
           category,
           is_halal,
           opening_hours,
-          avg_price_level,
+          starting_price,
+          source_url,
           created_at
         FROM vendors
         WHERE canteen_id = $1
