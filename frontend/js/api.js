@@ -5,9 +5,10 @@
 // TU Canteen Finder - API Integration
 // AWS Lambda Function URL
 // =========================================
+//"https://baflg5vkl6rogyfu775h6mcvbm0ccwct.lambda-url.us-east-1.on.aws";
 
 const API_BASE_URL =
-  "https://baflg5vkl6rogyfu775h6mcvbm0ccwct.lambda-url.us-east-1.on.aws";
+  "https://canteensweb-api.supanat-upa.workers.dev";
 
 
 // =========================================
@@ -105,29 +106,17 @@ function getPeriodLabel(period) {
 }
 
 
-function getPriceLabel(price) {
-
-  const labels = {
-    "ประหยัด": "ประหยัด",
-    "ปานกลาง": "ปานกลาง",
-    "สูง": "สูง"
-  };
-
-  return labels[price] || "ไม่ระบุราคา";
-}
-
-
 function getHalalLabel(value) {
 
   if (value === true) {
-    return "ฮาลาล (ข้อมูลทดสอบ)";
+    return "ระบุว่าเป็นฮาลาล";
   }
 
   if (value === false) {
-    return "ไม่ใช่ฮาลาล (ข้อมูลทดสอบ)";
+    return "ระบุว่าไม่ใช่ฮาลาล";
   }
 
-  return "ยังไม่มีข้อมูลยืนยัน";
+  return "ไม่ระบุ";
 }
 
 
@@ -189,11 +178,7 @@ function filterCanteens() {
       state.activePeriod === "ALL" ||
       canteen.operating_period === state.activePeriod;
 
-    const matchesAllDay =
-      state.activePeriod !== "ALL_DAY" ||
-      canteen.operating_period === "ALL";
-
-    return matchesSearch && matchesPeriod && matchesAllDay;
+    return matchesSearch && matchesPeriod;
 
   });
 
@@ -520,7 +505,7 @@ function renderCanteenDetail() {
   const halalText = createElement(
     "span",
     "canteen-detail__halal-text",
-    "แสดงเฉพาะร้านที่ระบุว่าเป็นฮาลาล (ข้อมูลทดสอบ)"
+    "แสดงเฉพาะร้านที่ระบุว่าเป็นฮาลาล"
   );
 
   halalContainer.append(halalCheckbox, halalText);
@@ -633,9 +618,12 @@ function renderVendorList() {
     const price = createElement(
       "p",
       "vendor-card__fact",
-      `ระดับราคา: ${getPriceLabel(vendor.avg_price_level)}`
+      `ราคาเริ่มต้น: ${
+        Number.isFinite(vendor.starting_price)
+          ? `${vendor.starting_price} บาท`
+          : "ไม่ระบุ"
+      }`
     );
-
 
     card.append(
       header,
@@ -643,6 +631,18 @@ function renderVendorList() {
       openingHours,
       price
     );
+
+    if (vendor.source_url) {
+      const source = createElement(
+        "a",
+        "vendor-card__source",
+        "แหล่งข้อมูล"
+      );
+      source.href = vendor.source_url;
+      source.target = "_blank";
+      source.rel = "noopener noreferrer";
+      card.append(source);
+    }
 
     vendorList.append(card);
 

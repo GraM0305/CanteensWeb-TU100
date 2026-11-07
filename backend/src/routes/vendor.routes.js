@@ -96,7 +96,8 @@ router.get("/", async (req, res) => {
         v.category,
         v.is_halal,
         v.opening_hours,
-        v.avg_price_level,
+        v.starting_price,
+        v.source_url,
         v.created_at
       FROM vendors v
       INNER JOIN canteens c
@@ -156,7 +157,8 @@ router.get("/:id", async (req, res) => {
           v.category,
           v.is_halal,
           v.opening_hours,
-          v.avg_price_level,
+          v.starting_price,
+          v.source_url,
           v.created_at
         FROM vendors v
         INNER JOIN canteens c

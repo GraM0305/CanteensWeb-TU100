@@ -28,7 +28,8 @@ CREATE TABLE vendors (
     category VARCHAR(50) NOT NULL,
     is_halal BOOLEAN DEFAULT NULL,
     opening_hours VARCHAR(100),
-    avg_price_level VARCHAR(20),
+    starting_price INTEGER CHECK (starting_price >= 0),
+    source_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -51,3 +52,6 @@ ON vendors(category);
 -- Filter vendors by halal status
 CREATE INDEX idx_vendors_halal
 ON vendors(is_halal);
+
+CREATE UNIQUE INDEX idx_vendors_canteen_name
+ON vendors(canteen_id, name);

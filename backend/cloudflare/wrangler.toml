@@ -1,0 +1,9 @@
+name = "canteensweb-api"
+main = "index.js"
+compatibility_date = "2026-11-06"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "canteensweb-tu"
+database_id = "91958926-7eb2-4732-867c-02f865ec027d"
