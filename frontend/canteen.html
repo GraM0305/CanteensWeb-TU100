@@ -4,36 +4,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#174c3c">
 
   <title>รายละเอียดโรงอาหาร - TU Canteen Finder</title>
+  <link rel="icon" type="image/svg+xml" href="canteen-fontAwesome.svg">
 
   <script src="https://cdn.tailwindcss.com"></script>
 
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
-<body class="bg-slate-50 font-sans text-slate-800 min-h-screen">
+<body class="canteen-page bg-slate-50 font-sans text-slate-800 min-h-screen">
 
-  <!-- Header -->
-  <header class="bg-white border-b border-slate-200 shadow-sm">
-    <div class="max-w-5xl mx-auto px-5 py-4">
-
-      <a
-        href="index.html"
-        class="text-sm text-emerald-600 font-semibold hover:text-emerald-700"
-      >
+  <header class="canteen-page__header bg-white border-b border-slate-200 shadow-sm">
+    <div class="canteen-page__header-inner max-w-5xl mx-auto px-5 py-4">
+      <div class="canteen-page__brand">
+        <span class="canteen-page__brand-mark" aria-hidden="true">🍽️</span>
+        <h1>TU CANTEENS <span class="canteen-page__brand-accent">FINDER</span></h1>
+      </div>
+      <a href="index.html" class="canteen-page__back">
         ← กลับไปหน้าแผนที่
       </a>
-
-      <h1 class="text-xl font-bold mt-3">
-        TU Canteen <span class="text-emerald-600">Finder</span>
-      </h1>
-
     </div>
   </header>
 
 
-  <main class="max-w-5xl mx-auto px-5 py-6 space-y-6">
+  <main class="canteen-page__main max-w-5xl mx-auto px-5 py-6">
 
     <!-- Loading / Error Status -->
     <div
@@ -55,13 +51,13 @@
 
 
     <!-- Restaurant Data Notice -->
-    <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
+    <div class="canteen-page__notice bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
       ราคาและเวลาเปิด-ปิดอ้างอิงจากแหล่งข้อมูลที่ระบุไว้ โปรดตรวจสอบกับร้านอีกครั้ง
     </div>
 
 
     <!-- Vendors Section -->
-    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-5">
+    <section class="canteen-page__vendors bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
 
       <div class="flex justify-between items-center gap-3">
         <h2 class="font-bold text-lg">
@@ -78,7 +74,7 @@
 
 
       <!-- Filters -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="canteen-page__filters grid grid-cols-1 sm:grid-cols-2 gap-4">
 
         <div>
           <label
@@ -88,12 +84,25 @@
             ประเภทอาหาร
           </label>
 
-          <select
-            id="category-filter"
-            class="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white"
-          >
-            <option value="ALL">ทุกประเภท</option>
-          </select>
+          <div class="canteen-page__select-wrapper">
+            <select
+              id="category-filter"
+              class="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white"
+            >
+              <option value="ALL">ทุกประเภท</option>
+            </select>
+            <svg
+              class="canteen-page__select-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 640 640"
+              aria-hidden="true"
+            >
+              <path
+                fill="currentColor"
+                d="M297.4 201.4C309.9 188.9 330.2 188.9 342.7 201.4L502.7 361.4C515.2 373.9 515.2 394.2 502.7 406.7C490.2 419.2 469.9 419.2 457.4 406.7L320 269.3L182.6 406.6C170.1 419.1 149.8 419.1 137.3 406.6C124.8 394.1 124.8 373.8 137.3 361.3L297.3 201.3z"
+              />
+            </svg>
+          </div>
         </div>
 
 
@@ -105,15 +114,28 @@
             ข้อมูลฮาลาล
           </label>
 
-          <select
-            id="halal-filter"
-            class="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white"
-          >
-            <option value="ALL">ทุกสถานะ</option>
-            <option value="true">ระบุว่าเป็นฮาลาล</option>
-            <option value="false">ระบุว่าไม่ใช่ฮาลาล</option>
-            <option value="unknown">ไม่ระบุ</option>
-          </select>
+          <div class="canteen-page__select-wrapper">
+            <select
+              id="halal-filter"
+              class="w-full border border-slate-200 rounded-lg p-2.5 text-sm bg-white"
+            >
+              <option value="ALL">ทุกสถานะ</option>
+              <option value="true">ฮาลาล</option>
+              <option value="false">ไม่ใช่ฮาลาล</option>
+              <option value="unknown">ไม่ระบุ</option>
+            </select>
+            <svg
+              class="canteen-page__select-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 640 640"
+              aria-hidden="true"
+            >
+              <path
+                fill="currentColor"
+                d="M297.4 201.4C309.9 188.9 330.2 188.9 342.7 201.4L502.7 361.4C515.2 373.9 515.2 394.2 502.7 406.7C490.2 419.2 469.9 419.2 457.4 406.7L320 269.3L182.6 406.6C170.1 419.1 149.8 419.1 137.3 406.6C124.8 394.1 124.8 373.8 137.3 361.3L297.3 201.3z"
+              />
+            </svg>
+          </div>
         </div>
 
       </div>

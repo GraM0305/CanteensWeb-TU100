@@ -5,24 +5,26 @@
 /* Custom cards, filters, and map popups use the shared brand palette. */
 .period-filter {
   flex: 0 0 auto;
-  border: 0;
-  border-radius: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  background: var(--color-white);
-  color: var(--color-rainforest-green);
+  min-height: 2.5rem;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  padding: 0.5rem 0.875rem;
+  background: var(--color-background);
+  color: var(--color-text);
   font: inherit;
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
 .period-filter:hover {
-  background: var(--color-river-stone);
+  border-color: var(--color-fresh-green);
+  background: var(--color-soft-green);
 }
 
 .period-filter.is-active {
-  background: var(--color-rainforest-green);
-  color: var(--color-natural-beige);
+  background: var(--color-forest-green);
+  color: var(--color-white);
   font-weight: 600;
 }
 
@@ -30,29 +32,32 @@
 .canteen-card__select:focus-visible,
 .canteen-card__details:focus-visible,
 .canteen-detail__close:focus-visible,
-.map-popup__link:focus-visible {
-  outline: 2px solid var(--color-river-stone);
+.map-popup__link:focus-visible,
+.canteen-detail__select:focus-visible,
+.canteen-page a:focus-visible,
+.canteen-page select:focus-visible {
+  outline: 3px solid rgb(33 102 79 / 35%);
   outline-offset: 2px;
 }
 
 .canteen-card {
   overflow: hidden;
-  border: 1px solid var(--color-green-border);
-  border-radius: 1rem;
-  /* Keep canteen list cards white against the beige page background. */
-  background: #fff;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  border: 1px solid var(--color-border);
+  border-radius: 1.125rem;
+  background: var(--color-white);
+  box-shadow: 0 2px 8px rgb(29 42 36 / 5%);
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
 
 .canteen-card:hover {
-  border-color: var(--color-river-stone);
-  box-shadow: 0 4px 8px rgb(15 23 42 / 0.1);
+  border-color: rgb(33 102 79 / 45%);
+  box-shadow: 0 8px 20px rgb(29 42 36 / 9%);
+  transform: translateY(-1px);
 }
 
 .canteen-card.is-selected {
-  border-color: var(--color-rainforest-green);
-  box-shadow: 0 0 0 1px var(--color-river-soft);
+  border-color: var(--color-fresh-green);
+  box-shadow: 0 0 0 3px rgb(33 102 79 / 12%);
 }
 
 .canteen-card__select {
@@ -61,7 +66,7 @@
   padding: 1rem;
   border: 0;
   background: transparent;
-  color: inherit;
+  color: var(--color-text);
   text-align: left;
   cursor: pointer;
 }
@@ -83,20 +88,20 @@
 .canteen-detail__title,
 .vendor-card__name {
   margin: 0;
-  color: var(--color-rainforest-green);
+  color: var(--color-text);
   font-weight: 700;
 }
 
 .canteen-card__title {
-  font-size: 1rem;
+  font-size: 0.875rem;
 }
 
 .canteen-card__period {
   flex: 0 0 auto;
   border-radius: 9999px;
   padding: 0.25rem 0.5rem;
-  background: var(--color-river-soft);
-  color: var(--color-rainforest-green);
+  background: var(--color-soft-green);
+  color: var(--color-forest-green);
   font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
@@ -111,16 +116,16 @@
 .canteen-card__details {
   display: block;
   margin: 0 1rem 1rem;
-  border-top: 1px solid var(--color-green-border);
-  padding-top: 0.5rem;
-  color: var(--color-rainforest-green);
-  font-size: 0.75rem;
-  font-weight: 500;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.75rem;
+  color: var(--color-fresh-green);
+  font-size: 0.8125rem;
+  font-weight: 600;
   text-decoration: none;
 }
 
 .canteen-card__details:hover {
-  color: var(--color-rainforest-green);
+  color: var(--color-forest-green);
 }
 
 .empty-state {
@@ -140,7 +145,7 @@
   border-radius: 0.75rem;
   padding: 0.75rem;
   background: #fef2f2;
-  color: #dc2626;
+  color: var(--color-error);
   font-size: 0.875rem;
 }
 
@@ -160,10 +165,12 @@
 
 .canteen-detail__close {
   flex: 0 0 auto;
-  border: 0;
-  padding: 0.125rem 0;
-  background: transparent;
-  color: var(--color-text-muted);
+  min-height: 2.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  padding: 0.375rem 0.75rem;
+  background: var(--color-white);
+  color: var(--color-muted);
   font-size: 0.75rem;
   cursor: pointer;
 }
@@ -193,10 +200,10 @@
 .canteen-detail__select {
   width: 100%;
   border: 1px solid var(--color-green-border);
-  border-radius: 0.5rem;
-  padding: 0.5rem;
-  background: var(--color-natural-beige);
-  color: var(--color-rainforest-green);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  background: var(--color-white);
+  color: var(--color-text);
   font-size: 0.875rem;
 }
 
@@ -226,19 +233,20 @@
   display: grid;
   gap: 0.5rem;
   border: 1px solid var(--color-green-border);
-  border-radius: 0.75rem;
-  padding: 0.75rem;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: var(--color-white);
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
 
 #vendor-list .vendor-card {
   gap: 0.75rem;
-  padding: 1rem;
 }
 
 .vendor-card:hover {
-  border-color: var(--color-river-stone);
-  box-shadow: 0 1px 3px rgb(15 23 42 / 0.08);
+  border-color: rgb(33 102 79 / 40%);
+  box-shadow: 0 5px 16px rgb(29 42 36 / 7%);
+  transform: translateY(-1px);
 }
 
 .vendor-card__name {
@@ -255,8 +263,8 @@
 .vendor-card__category--pill {
   border-radius: 9999px;
   padding: 0.25rem 0.5rem;
-  background: var(--color-river-soft);
-  color: var(--color-rainforest-green);
+  background: var(--color-soft-green);
+  color: var(--color-forest-green);
 }
 
 .vendor-card__fact {
@@ -265,18 +273,12 @@
   font-size: 0.75rem;
 }
 
-.vendor-card__source {
-  color: var(--color-river-stone);
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-decoration: underline;
-}
-
 .canteen-info__title {
   margin: 0 0 0.75rem;
-  color: var(--color-rainforest-green);
-  font-size: 1.5rem;
+  color: var(--color-forest-green);
+  font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
+  line-height: 1.3;
 }
 
 .canteen-info__period {
@@ -284,15 +286,15 @@
   margin-bottom: 1rem;
   border-radius: 9999px;
   padding: 0.25rem 0.75rem;
-  background: var(--color-river-soft);
-  color: var(--color-rainforest-green);
+  background: var(--color-soft-green);
+  color: var(--color-forest-green);
   font-size: 0.75rem;
   font-weight: 600;
 }
 
 .canteen-info__description {
   margin: 0;
-  color: var(--color-rainforest-green);
+  color: var(--color-muted);
   font-size: 0.875rem;
   line-height: 1.625;
 }
@@ -303,7 +305,7 @@
 }
 
 .page-status--success {
-  color: var(--color-rainforest-green);
+  color: var(--color-fresh-green);
   font-size: 0.75rem;
 }
 
@@ -311,7 +313,7 @@
   border-radius: 0.5rem;
   padding: 0.75rem;
   background: #fef2f2;
-  color: #dc2626;
+  color: var(--color-error);
   font-size: 0.875rem;
 }
 
@@ -321,14 +323,14 @@
 
 .map-popup .map-popup__title {
   margin: 0 0 0.5rem;
-  color: var(--color-rainforest-green);
+  color: var(--color-forest-green);
   font-size: 1rem;
   font-weight: 700;
 }
 
 .map-popup .map-popup__description,
 .map-popup .map-popup__period {
-  color: var(--color-rainforest-green);
+  color: var(--color-text);
   font-size: 0.75rem;
 }
 
@@ -346,8 +348,8 @@
   border: 1px solid var(--color-green-border);
   border-radius: 0.5rem;
   padding: 0.5rem;
-  background: var(--color-white);
-  color: var(--color-river-stone);
+  background: var(--color-fresh-green);
+  color: var(--color-white);
   font-size: 0.75rem;
   font-weight: 600;
   text-align: center;
@@ -355,14 +357,15 @@
 }
 
 .leaflet-container a.map-popup__link:hover {
-color: var(--color-white);
-  background: var(--color-river-stone);
+  color: var(--color-white);
+  background: var(--color-forest-green);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .period-filter,
   .canteen-card,
-  .vendor-card {
+  .vendor-card,
+  .canteen-detail__close {
     transition: none;
   }
 }

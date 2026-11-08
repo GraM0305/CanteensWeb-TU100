@@ -5,7 +5,9 @@
 // TU Canteen Finder - Dynamic Leaflet Map
 // =========================================
 
-const CanteenMap = (() => {
+const L = window.L;
+
+export const CanteenMap = (() => {
 
   let map = null;
   let markerGroup = null;
@@ -25,10 +27,10 @@ const CanteenMap = (() => {
     );
 
     L.tileLayer(
-      "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      "https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png",
       {
         maxZoom: 19,
-        attribution: "&copy; OpenStreetMap contributors"
+        attribution: "&copy; OpenStreetMap contributors, tiles &copy; openstreetmap.de"
       }
     ).addTo(map);
 
@@ -230,8 +232,3 @@ const CanteenMap = (() => {
   };
 
 })();
-
-
-document.addEventListener("DOMContentLoaded", () => {
-  CanteenMap.init();
-});
