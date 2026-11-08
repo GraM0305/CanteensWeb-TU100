@@ -106,11 +106,11 @@ function getPeriodLabel(period) {
 function getHalalLabel(value) {
 
   if (value === true) {
-    return "ระบุว่าเป็นฮาลาล";
+    return "ฮาลาล";
   }
 
   if (value === false) {
-    return "ระบุว่าไม่ใช่ฮาลาล";
+    return "ไม่ใช่ฮาลาล";
   }
 
   return "ไม่ระบุ";
@@ -342,18 +342,6 @@ function renderVendors() {
       hours,
       price
     );
-
-    if (vendor.source_url) {
-      const source = createElement(
-        "a",
-        "vendor-card__source",
-        "แหล่งข้อมูล"
-      );
-      source.href = vendor.source_url;
-      source.target = "_blank";
-      source.rel = "noopener noreferrer";
-      card.append(source);
-    }
 
     vendorList.append(card);
 

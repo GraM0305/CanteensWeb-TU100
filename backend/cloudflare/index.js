@@ -151,7 +151,6 @@ async function handleRequest(request, env) {
             is_halal,
             opening_hours,
             starting_price,
-            source_url,
             created_at
           FROM vendors
           WHERE canteen_id = ?
@@ -264,7 +263,6 @@ async function handleRequest(request, env) {
           v.is_halal,
           v.opening_hours,
           v.starting_price,
-          v.source_url,
           v.created_at
         FROM vendors v
         INNER JOIN canteens c
@@ -312,7 +310,6 @@ async function handleRequest(request, env) {
             v.is_halal,
             v.opening_hours,
             v.starting_price,
-            v.source_url,
             v.created_at
           FROM vendors v
           INNER JOIN canteens c

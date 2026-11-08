@@ -1,200 +1,66 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta name="theme-color" content="#174c3c">
   <title>TU Canteen Finder - ค้นหาโรงอาหาร มธ.รังสิต</title>
-
-  <!-- Tailwind CSS -->
+  <link rel="icon" type="image/svg+xml" href="fontAwesome.svg">
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
-  />
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
-  />
-
-  <!-- Custom CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
   <link rel="stylesheet" href="css/styles.css">
 </head>
-
-<body class="bg-slate-50 font-sans text-slate-800 antialiased h-screen overflow-hidden">
-
-  <!-- Header -->
-  <!-- Header uses the primary Natural Beige brand color. -->
-  <header class="h-16 bg-natural-beige border-b border-slate-200 px-6
-                 flex items-center justify-between z-10 relative shadow-sm">
-
-    <div class="flex items-center gap-3">
-      <span class="text-2xl">🍔</span>
-
-      <h1 class="text-xl font-bold tracking-tight text-slate-800">
-        TU Canteen <span class="text-emerald-600">Finder</span>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen lg:h-screen lg:overflow-hidden">
+  <header class="app-header px-4 sm:px-6 flex items-center justify-between relative z-10">
+    <div class="flex items-center gap-3 min-w-0">
+      <span class="flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 text-2xl" aria-hidden="true">🍽️</span>
+      <h1 class="app-header__brand text-lg sm:text-xl font-bold tracking-tight whitespace-nowrap">
+        TU CANTEENS <span class="app-header__brand-accent">FINDER</span>
       </h1>
     </div>
-
-    <div class="text-xs font-semibold text-emerald-700
-                bg-emerald-50 px-3 py-1.5 rounded-full
-                border border-emerald-200">
-      ธรรมศาสตร์ ศูนย์รังสิต
-    </div>
+    <div class="app-header__location">THAMMASAT<br class="sm:hidden"> RANGSIT CAMPUS</div>
   </header>
 
-
-  <!-- Main Content -->
-  <!-- Keep the main page area and its map/sidebar surfaces Natural Beige. -->
-  <main class="flex flex-col lg:flex-row h-[calc(100vh-4rem)] w-full bg-natural-beige">
-
-    <!-- Map -->
-    <section class="flex-1 h-[45vh] lg:h-full relative bg-natural-beige order-1">
+  <main class="page-shell flex flex-col lg:flex-row w-full lg:h-[calc(100vh-4rem)]">
+    <section class="map-panel relative order-1 h-[42vh] min-h-[280px] lg:order-1 lg:flex-1 lg:h-auto lg:min-h-0 bg-slate-100" aria-label="แผนที่โรงอาหาร">
       <div id="map" class="w-full h-full"></div>
     </section>
 
-
-    <!-- Canteen Sidebar -->
-    <section class="w-full lg:w-[420px] xl:w-[460px]
-                    h-[55vh] lg:h-full flex flex-col
-                    bg-natural-beige border-t lg:border-t-0
-                    lg:border-l border-slate-200 shrink-0 order-2">
-
-      <!-- Search and Filters -->
-        <!-- Search field uses Natural Beige instead of white. -->
-      <div class="p-4 bg-beige-soft border-b border-slate-200 space-y-3 shadow-sm">
-
+    <section class="canteen-sidebar order-2 flex w-full flex-col min-h-[440px] lg:order-2 lg:w-[420px] xl:w-[440px] lg:h-full lg:min-h-0 shrink-0 bg-white border-t lg:border-t-0 lg:border-l border-slate-200">
+      <div class="search-panel p-4 space-y-3 shadow-sm">
         <div class="relative">
-          
-          <input
-            id="canteen-search"
-            type="search"
-            placeholder="ค้นหาชื่อโรงอาหาร..."
-            class="w-full pl-10 pr-4 py-2.5 bg-slate-100
-                   rounded-xl text-sm border-0
-                   focus:ring-2 focus:ring-emerald-500
-                   focus:bg-white outline-none"
-          >
-
-          <span class="absolute left-3 top-3 text-slate-400 text-sm">
-            🔍
-          </span>
+          <input id="canteen-search" type="search" placeholder="ค้นหาชื่อโรงอาหาร..." aria-label="ค้นหาชื่อโรงอาหาร" class="search-field text-sm">
+          <span class="absolute left-3 top-3 text-slate-400 text-sm" aria-hidden="true">⌕</span>
         </div>
-
-        <!-- Operating Period Filter -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-
-          <button
-            type="button"
-            class="period-filter is-active"
-            data-period="ALL"
-          >
-            ทั้งหมด
-          </button>
-
-          <button
-            type="button"
-            class="period-filter"
-            data-period="DAY"
-          >
-            ☀️ กลางวัน
-          </button>
-
-          <button
-            type="button"
-            class="period-filter"
-            data-period="NIGHT"
-          >
-            🌙 กลางคืน
-          </button>
-
-          <button
-            type="button"
-            class="period-filter"
-            data-period="ALL_DAY"
-          >
-            เปิดทุกช่วง
-          </button>
-
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs" aria-label="กรองตามช่วงเวลาเปิด">
+          <button type="button" class="period-filter is-active" data-period="ALL" aria-pressed="true">ทั้งหมด</button>
+          <button type="button" class="period-filter" data-period="DAY" aria-pressed="false">☀️ กลางวัน</button>
+          <button type="button" class="period-filter" data-period="NIGHT" aria-pressed="false">🌙 กลางคืน</button>
         </div>
-
       </div>
 
-
-      <!-- Content Area -->
-      <div class="flex-1 overflow-y-auto p-4 space-y-4">
-
-        <!-- API Status -->
-        <div
-          id="api-status"
-          role="status"
-          aria-live="polite"
-          class="text-xs text-slate-500"
-        >
-          กำลังเชื่อมต่อ API...
+      <div class="canteen-sidebar__content flex-1 overflow-y-auto p-4 space-y-4">
+        <div id="api-status" role="status" aria-live="polite" class="text-xs text-slate-500">กำลังเชื่อมต่อ API...</div>
+        <div class="notice-panel p-3 text-xs leading-relaxed">
+          ข้อมูลที่แสดงเป็นข้อมูลตัวอย่างสำหรับทดสอบระบบเท่านั้น
         </div>
-
-        <!-- Test Data Notice -->
-        <div class="bg-amber-50 border border-amber-200
-                    text-amber-800 rounded-xl p-3 text-xs">
-          ข้อมูลที่แสดงเป็นข้อมูลตัวอย่างสำหรับทดสอบระบบ
-          ยังไม่ได้รับการยืนยันว่าเป็นข้อมูลจริง
+        <div class="flex justify-between items-center gap-3">
+          <h2 class="section-heading font-bold">ค้นหาโรงอาหาร</h2>
+          <span id="canteen-count" class="count-pill">0 โรงอาหาร</span>
         </div>
-
-        <!-- Canteen Count -->
-        <div class="flex justify-between items-center">
-          <h2 class="font-bold text-slate-800">
-            รายการโรงอาหาร
-          </h2>
-
-          <span
-            id="canteen-count"
-            class="text-xs text-slate-500"
-          >
-            0 โรงอาหาร
-          </span>
+        <div id="mobile-canteen-picker" class="mobile-canteen-picker">
         </div>
-
-        <!-- Dynamic Canteen List -->
-        <div
-          id="canteen-list"
-          class="space-y-3"
-          aria-live="polite"
-        >
-        </div>
-
-        <!-- Selected Canteen Detail -->
-        <section
-          id="canteen-detail"
-          class="is-hidden bg-white rounded-2xl border
-                 border-slate-200 p-4 shadow-sm space-y-4"
-        >
-        </section>
-
+        <div id="canteen-list" class="space-y-3" aria-live="polite"></div>
+        <section id="canteen-detail" class="is-hidden content-panel p-4 space-y-4" aria-live="polite"></section>
       </div>
-
     </section>
-
   </main>
 
-
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- Leaflet Marker Cluster -->
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-
-
-  <!-- Application Scripts -->
-  <script src="js/map.js"></script>
-  <script src="js/api.js"></script>
+  <script type="module" src="js/app.js"></script>
 
 </body>
 </html>

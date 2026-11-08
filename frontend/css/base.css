@@ -1,51 +1,83 @@
-/* Brand palette: Natural Beige 60%, River Stone 30%, Rainforest Green 10%. */
 :root {
   --color-white: #ffffff;
-  --color-natural-beige: #dcd0a8;
-  --color-beige-soft: #e8dfc7;
-  --color-river-stone: #4a9782;
-  --color-rainforest-green: #004030;
-  --color-green-border: rgb(0 64 48 / 18%);
-  --color-river-soft: rgb(74 151 130 / 18%);
-  --color-text-muted: rgb(0 64 48 / 76%);
+  --color-background: #f7f8f5;
+  --color-soft-green: #eaf2ec;
+  --color-forest-green: #174c3c;
+  --color-fresh-green: #21664f;
+  --color-mango: #f2a65a;
+  --color-border: #999a99;
+  --color-text: #1d2a24;
+  --color-muted: #6c7871;
+  --color-error: #b42318;
+
+  --color-natural-beige: var(--color-background);
+  --color-beige-soft: var(--color-soft-green);
+  --color-river-stone: var(--color-fresh-green);
+  --color-rainforest-green: var(--color-forest-green);
+  --color-green-border: var(--color-border);
+  --color-river-soft: var(--color-soft-green);
+  --color-text-muted: var(--color-muted);
 }
 
-/* Theme the Tailwind color utilities used by both pages without changing layout. */
-.bg-slate-50,
+body.bg-slate-50 {
+  background-color: var(--color-background);
+}
+
+body.canteen-page {
+  color: var(--color-text);
+  background-color: var(--color-background);
+  font-family: "Noto Sans Thai", "Leelawadee UI", Tahoma, sans-serif;
+}
+
 .bg-white {
   background-color: var(--color-white);
 }
 
-/* Use Natural Beige for the page's main structural surfaces. */
 .bg-natural-beige {
   background-color: var(--color-natural-beige);
 }
+
 .bg-beige-soft {
   background-color: var(--color-beige-soft);
 }
 
-.bg-slate-100,
+.map-panel.bg-slate-100 {
+  background-color: #edf2ef;
+}
+
 .bg-amber-50 {
-  background-color: var(--color-white);
+  background-color: #fff7ec;
 }
 
 .bg-slate-200 {
   background-color: var(--color-river-stone);
 }
 
-.border-slate-200,
-.border-amber-200 {
+.border-slate-200 {
   border-color: var(--color-green-border);
 }
 
+.border-amber-200 {
+  border-color: rgb(242 166 90 / 45%);
+}
+
 .text-slate-800,
-.text-slate-700,
+.text-slate-700 {
+  color: var(--color-text);
+}
+
 .text-slate-600,
-.text-slate-500,
-.text-amber-800,
+.text-slate-500 {
+  color: var(--color-muted);
+}
+
+.text-amber-800 {
+  color: #8a4b12;
+}
+
 .text-emerald-600,
 .text-emerald-700 {
-  color: var(--color-rainforest-green);
+  color: var(--color-fresh-green);
 }
 
 .text-slate-400 {
@@ -57,9 +89,9 @@
 }
 
 .border-emerald-200 {
-  border-color: rgb(74 151 130 / 48%);
+  border-color: rgb(33 102 79 / 35%);
 }
 
 .focus\:ring-emerald-500:focus {
-  --tw-ring-color: var(--color-river-stone);
+  --tw-ring-color: var(--color-fresh-green);
 }

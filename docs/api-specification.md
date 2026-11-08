@@ -165,8 +165,7 @@ GET /api/canteens/1/vendors
       "category": "อาหารตามสั่ง",
       "is_halal": null,
       "opening_hours": "08:00-16:00",
-      "starting_price": 35,
-      "source_url": "https://thammasat-food.netlify.app/"
+      "starting_price": 35
     }
   ]
 }
@@ -193,8 +192,7 @@ GET /api/canteens/1/vendors
       "category": "อาหารตามสั่ง",
       "is_halal": null,
       "opening_hours": "08:00-16:00",
-      "starting_price": 35,
-      "source_url": "https://thammasat-food.netlify.app/"
+      "starting_price": 35
     }
   ]
 }
@@ -226,8 +224,7 @@ GET /api/vendors/1
     "category": "อาหารตามสั่ง",
     "is_halal": null,
     "opening_hours": "08:00-16:00",
-    "starting_price": 35,
-    "source_url": "https://thammasat-food.netlify.app/"
+    "starting_price": 35
   }
 }
 ```
@@ -315,17 +312,17 @@ GET /api/vendors/1/menus
 ### 6.1 นำเข้าข้อมูลร้านอาหาร
 
 เว็บที่เผยแพร่อยู่เรียกใช้ Cloudflare Worker และ Cloudflare D1 ให้นำ migration
-ใน `backend/cloudflare/migrations/` ไปใช้ตามลำดับ (`0002` ถึง `0004`)
+ใน `backend/cloudflare/migrations/` ไปใช้ตามลำดับ (`0002` ถึง `0007`)
 และ deploy Worker ใหม่หลัง migration สำเร็จ คำสั่งสำหรับฐานข้อมูลจริงคือ
 `npx wrangler d1 migrations apply canteensweb-tu --remote` และ
 `npx wrangler deploy` จาก `backend/cloudflare/`. Migration `0004`
 ลบฟิลด์ระดับราคาเดิมออก โดย `starting_price` เป็นฟิลด์ราคาตัวเลขเพียงฟิลด์เดียว
-และข้อมูลสถานะฮาลาลจะเป็น `null` เมื่อไฟล์ต้นทางไม่ได้ระบุไว้
+ส่วน `0006` เพิ่มข้อมูลร้านโรงอาหารกรีนดึก (ID 4) และ `0007` ลบร้านที่ไม่ต้องการ
+พร้อมกับคอลัมน์ `food_group`, `menu_highlights`, `contact_info`, `notes`
+สถานะฮาลาลที่ไม่ได้ระบุในไฟล์ต้นทางให้เป็น `null`
 
-สำหรับฐานข้อมูล PostgreSQL ให้รัน
-`database/migrations/002_vendor_restaurant_details.sql` ก่อน
-`database/seed_data.sql` โดย seed จะอัปเดตข้อมูลร้านชุดเดิมและแทนที่เฉพาะ
-ข้อมูลตัวอย่างเดิมที่ระบุไว้ในสคริปต์
+สำหรับฐานข้อมูล PostgreSQL ให้รัน migration `002` ถึง `005` ใน
+`database/migrations/` ก่อน `database/seed_data.sql`
 
 ## 7. ขอบเขตการพัฒนาในระยะแรก
 

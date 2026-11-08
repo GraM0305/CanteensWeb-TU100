@@ -29,7 +29,6 @@ CREATE TABLE vendors (
     is_halal BOOLEAN DEFAULT NULL,
     opening_hours VARCHAR(100),
     starting_price INTEGER CHECK (starting_price >= 0),
-    source_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
