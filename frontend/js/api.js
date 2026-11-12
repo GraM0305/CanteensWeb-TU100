@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://canteensweb-api.supanat-upa.workers.dev";
+const API_BASE_URL = window.APP_CONFIG.API_BASE_URL;
 
 async function apiGet(path) {
   const response = await fetch(`${API_BASE_URL}/api${path}`, {

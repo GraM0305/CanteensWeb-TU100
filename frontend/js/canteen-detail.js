@@ -7,8 +7,7 @@
 // =========================================
 //"https://baflg5vkl6rogyfu775h6mcvbm0ccwct.lambda-url.us-east-1.on.aws";
 
-const API_BASE_URL =
-  "https://canteensweb-api.supanat-upa.workers.dev";
+const API_BASE_URL = window.APP_CONFIG.API_BASE_URL;
 
 // =========================================
 // PAGE STATE
