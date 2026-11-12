@@ -14,13 +14,17 @@ const corsHeaders = {
 };
 
 function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      ...corsHeaders,
-      "Content-Type": "application/json; charset=utf-8",
-    },
-  });
+  const headers = {
+    ...corsHeaders,
+    "Content-Type": "application/json; charset=utf-8",
+  };
+
+  // Cache successful responses for 5 minutes; never cache errors.
+  if (status === 200) {
+    headers["Cache-Control"] = "public, max-age=300";
+  }
+
+  return new Response(JSON.stringify(data), { status, headers });
 }
 
 function errorResponse(message, status) {
@@ -86,6 +90,10 @@ async function handleRequest(request, env) {
 
     if (path === "/api/canteens") {
       const search = (url.searchParams.get("search") || "").trim();
+
+      if (search.length > 100) {
+        return errorResponse("Search query is too long", 400);
+      }
 
       let sql = `
         SELECT

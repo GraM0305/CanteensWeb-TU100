@@ -16,6 +16,15 @@ router.get("/", async (req, res) => {
         ? req.query.search.trim()
         : "";
 
+    if (search.length > 100) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: "Search query is too long",
+        },
+      });
+    }
+
     const values = [];
 
     let sql = `
