@@ -110,6 +110,43 @@ export function renderCanteenDetail({
   renderVendorList(state, vendorList);
 }
 
+// Square photo area shown at the top of each vendor card. Vendors without a
+// photo (or whose photo fails to load) get a neutral placeholder.
+function createVendorMedia(vendor) {
+  const media = createElement("div", "vendor-card__media");
+
+  const showPlaceholder = () => {
+    media.classList.add("vendor-card__media--empty");
+    media.replaceChildren(
+      createElement("span", "vendor-card__placeholder", "🍽️")
+    );
+  };
+
+  if (!vendor.image_url) {
+    showPlaceholder();
+    return media;
+  }
+
+  const image = document.createElement("img");
+
+  image.className = "vendor-card__image";
+  image.alt = `หน้าร้าน ${vendor.name}`;
+  image.width = 800;
+  image.height = 800;
+  image.loading = "lazy";
+  image.decoding = "async";
+
+  image.addEventListener("load", () => {
+    media.classList.add("vendor-card__media--loaded");
+  });
+  image.addEventListener("error", showPlaceholder);
+
+  image.src = vendor.image_url;
+  media.append(image);
+
+  return media;
+}
+
 function renderVendorList(state, vendorList) {
   vendorList.replaceChildren();
 
@@ -171,7 +208,13 @@ function renderVendorList(state, vendorList) {
       }`
     );
 
-    card.append(header, halalStatus, openingHours, price);
+    card.append(
+      createVendorMedia(vendor),
+      header,
+      halalStatus,
+      openingHours,
+      price
+    );
     vendorList.append(card);
   });
 }

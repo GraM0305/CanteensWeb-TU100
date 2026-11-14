@@ -230,17 +230,52 @@
 }
 
 .vendor-card {
+  --vendor-card-pad: 1rem;
+  --vendor-image-ratio: 4 / 3;
   display: grid;
   gap: 0.5rem;
+  overflow: hidden;
   border: 1px solid var(--color-green-border);
   border-radius: 1rem;
-  padding: 1rem;
+  padding: var(--vendor-card-pad);
   background: var(--color-white);
   transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
 
 #vendor-list .vendor-card {
   gap: 0.75rem;
+}
+
+/* Photo area: bleeds to the card edges; fixed ratio avoids layout shift. */
+.vendor-card__media {
+  position: relative;
+  margin: calc(-1 * var(--vendor-card-pad)) calc(-1 * var(--vendor-card-pad)) 0;
+  aspect-ratio: var(--vendor-image-ratio);
+  background: var(--color-soft-green);
+  overflow: hidden;
+}
+
+.vendor-card__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 250ms ease;
+}
+
+.vendor-card__media--loaded .vendor-card__image {
+  opacity: 1;
+}
+
+.vendor-card__media--empty {
+  display: grid;
+  place-items: center;
+}
+
+.vendor-card__placeholder {
+  font-size: 2.5rem;
+  opacity: 0.45;
 }
 
 .vendor-card:hover {
@@ -365,6 +400,7 @@
   .period-filter,
   .canteen-card,
   .vendor-card,
+  .vendor-card__image,
   .canteen-detail__close {
     transition: none;
   }
