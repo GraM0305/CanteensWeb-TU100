@@ -1,5 +1,31 @@
 # เอกสารข้อกำหนด API (API Specification)
 
+## 0. สถานะปัจจุบันของ API ที่ใช้งานจริง
+
+> เอกสารนี้เขียนขึ้นเป็นข้อกำหนดเบื้องต้น เมื่อมีข้อขัดแย้ง ให้ยึดหัวข้อนี้และโค้ดใน
+> `backend/cloudflare/index.js` (Cloudflare Worker + D1) ซึ่งเป็นระบบที่ใช้งานจริง
+
+Endpoint ที่มีอยู่จริง (GET เท่านั้น):
+
+| Endpoint | Query parameters |
+|---|---|
+| `/api/health` | – |
+| `/api/canteens` | `search` (ไม่เกิน 100 ตัวอักษร เกินแล้วตอบ 400) |
+| `/api/canteens/:id` | – |
+| `/api/canteens/:id/vendors` | – |
+| `/api/vendors` | `canteenId`, `category` (ไม่เกิน 50 ตัวอักษร), `halal` (`true` / `false` / `unknown`) |
+| `/api/vendors/:id` | – |
+
+**ยังไม่มีในระบบจริง:** `/api/vendors/:id/menus` และ `/api/menus` (หัวข้อ 4.7 และ 4.8)
+
+รายละเอียดอื่นของระบบจริง:
+
+- `operating_period` มีค่าเป็น `DAY` หรือ `NIGHT` (ไม่ใช่ข้อความภาษาไทยตามตัวอย่างด้านล่าง)
+- `/api/health` ตอบ `{ "success": true, "message": "CanteensWeb API is running" }`
+- คำตอบที่สำเร็จมี `Cache-Control: public, max-age=300`; คำตอบ error ไม่ถูก cache
+- Method อื่นนอกจาก GET ตอบ 405
+- Worker เปิด CORS ให้ทุก origin (`*`)
+
 ## 1. วัตถุประสงค์ของเอกสาร
 
 เอกสารฉบับนี้จัดทำขึ้นเพื่อกำหนดรูปแบบและมาตรฐานการสื่อสารระหว่าง Frontend และ Backend ของโครงการ CanteensWeb-TU100
@@ -229,7 +255,7 @@ GET /api/vendors/1
 }
 ```
 
-### 4.7 ดึงรายการเมนูของร้านค้า
+### 4.7 ดึงรายการเมนูของร้านค้า (ยังไม่ได้พัฒนา)
 
 **Endpoint:** `GET /api/vendors/:id/menus`
 
@@ -260,7 +286,7 @@ GET /api/vendors/1/menus
 }
 ```
 
-### 4.8 ดึงข้อมูลเมนูทั้งหมด
+### 4.8 ดึงข้อมูลเมนูทั้งหมด (ยังไม่ได้พัฒนา)
 
 **Endpoint:** `GET /api/menus`
 
@@ -312,7 +338,7 @@ GET /api/vendors/1/menus
 ### 6.1 นำเข้าข้อมูลร้านอาหาร
 
 เว็บที่เผยแพร่อยู่เรียกใช้ Cloudflare Worker และ Cloudflare D1 ให้นำ migration
-ใน `backend/cloudflare/migrations/` ไปใช้ตามลำดับ (`0002` ถึง `0007`)
+ใน `backend/cloudflare/migrations/` ไปใช้ตามลำดับ (`0002` ถึง `0011`)
 และ deploy Worker ใหม่หลัง migration สำเร็จ คำสั่งสำหรับฐานข้อมูลจริงคือ
 `npx wrangler d1 migrations apply canteensweb-tu --remote` และ
 `npx wrangler deploy` จาก `backend/cloudflare/`. Migration `0004`
@@ -321,7 +347,7 @@ GET /api/vendors/1/menus
 พร้อมกับคอลัมน์ `food_group`, `menu_highlights`, `contact_info`, `notes`
 สถานะฮาลาลที่ไม่ได้ระบุในไฟล์ต้นทางให้เป็น `null`
 
-สำหรับฐานข้อมูล PostgreSQL ให้รัน migration `002` ถึง `005` ใน
+สำหรับฐานข้อมูล PostgreSQL ให้รัน migration `002` ถึง `007` ใน
 `database/migrations/` ก่อน `database/seed_data.sql`
 
 ## 7. ขอบเขตการพัฒนาในระยะแรก

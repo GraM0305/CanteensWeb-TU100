@@ -14,13 +14,17 @@ const corsHeaders = {
 };
 
 function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      ...corsHeaders,
-      "Content-Type": "application/json; charset=utf-8",
-    },
-  });
+  const headers = {
+    ...corsHeaders,
+    "Content-Type": "application/json; charset=utf-8",
+  };
+
+  // Cache successful responses for 5 minutes; never cache errors.
+  if (status === 200) {
+    headers["Cache-Control"] = "public, max-age=300";
+  }
+
+  return new Response(JSON.stringify(data), { status, headers });
 }
 
 function errorResponse(message, status) {
@@ -30,18 +34,40 @@ function errorResponse(message, status) {
   }, status);
 }
 
-function normalizeVendor(vendor) {
+// Build the public photo URL from the R2 object key. Returns null when the
+// vendor has no photo or IMAGE_BASE_URL is not configured.
+function buildImageUrl(env, imageKey) {
+  const base = typeof env.IMAGE_BASE_URL === "string"
+    ? env.IMAGE_BASE_URL.trim().replace(/\/+$/, "")
+    : "";
+
+  if (!base || typeof imageKey !== "string" || !imageKey) {
+    return null;
+  }
+
+  const encodedKey = imageKey
+    .split("/")
+    .map(encodeURIComponent)
+    .join("/");
+
+  return `${base}/${encodedKey}`;
+}
+
+function normalizeVendor(vendor, env) {
+  const { image_key: imageKey, ...rest } = vendor;
+
   return {
-    ...vendor,
+    ...rest,
     is_halal:
       vendor.is_halal === null
         ? null
         : Boolean(vendor.is_halal),
+    image_url: buildImageUrl(env, imageKey),
   };
 }
 
-function normalizeVendors(vendors) {
-  return vendors.map(normalizeVendor);
+function normalizeVendors(vendors, env) {
+  return vendors.map(vendor => normalizeVendor(vendor, env));
 }
 
 function isValidId(id) {
@@ -86,6 +112,10 @@ async function handleRequest(request, env) {
 
     if (path === "/api/canteens") {
       const search = (url.searchParams.get("search") || "").trim();
+
+      if (search.length > 100) {
+        return errorResponse("Search query is too long", 400);
+      }
 
       let sql = `
         SELECT
@@ -151,6 +181,7 @@ async function handleRequest(request, env) {
             is_halal,
             opening_hours,
             starting_price,
+            image_key,
             created_at
           FROM vendors
           WHERE canteen_id = ?
@@ -161,7 +192,7 @@ async function handleRequest(request, env) {
 
       return jsonResponse({
         success: true,
-        data: normalizeVendors(result.results),
+        data: normalizeVendors(result.results, env),
       });
     }
 
@@ -263,6 +294,7 @@ async function handleRequest(request, env) {
           v.is_halal,
           v.opening_hours,
           v.starting_price,
+          v.image_key,
           v.created_at
         FROM vendors v
         INNER JOIN canteens c
@@ -282,7 +314,7 @@ async function handleRequest(request, env) {
 
       return jsonResponse({
         success: true,
-        data: normalizeVendors(result.results),
+        data: normalizeVendors(result.results, env),
       });
     }
 
@@ -310,6 +342,7 @@ async function handleRequest(request, env) {
             v.is_halal,
             v.opening_hours,
             v.starting_price,
+            v.image_key,
             v.created_at
           FROM vendors v
           INNER JOIN canteens c
@@ -325,7 +358,7 @@ async function handleRequest(request, env) {
 
       return jsonResponse({
         success: true,
-        data: normalizeVendor(vendor),
+        data: normalizeVendor(vendor, env),
       });
     }
 

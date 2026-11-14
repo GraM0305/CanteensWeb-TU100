@@ -1,5 +1,27 @@
 # เอกสารสถาปัตยกรรมระบบ (System Architecture)
 
+## 0. สถานะปัจจุบันของระบบที่ใช้งานจริง
+
+> เนื้อหาในหัวข้อ 1–12 ด้านล่างเป็นสถาปัตยกรรม **เป้าหมายเดิม** (Express + PostgreSQL + เมนูอาหาร)
+> ซึ่งไม่ตรงกับระบบที่ deploy อยู่ในปัจจุบัน ให้ใช้หัวข้อนี้เป็นข้อมูลอ้างอิงหลักเมื่อมีข้อขัดแย้ง
+
+| ส่วนประกอบ | ระบบที่ใช้งานจริง | ตำแหน่งในโปรเจกต์ |
+|---|---|---|
+| Frontend | HTML, CSS, JavaScript (Tailwind และ Leaflet โหลดจาก CDN) เผยแพร่บน Cloudflare Pages (`canteensweb-tu100.pages.dev`) | `frontend/` |
+| Backend (production) | Cloudflare Worker ไฟล์เดียว | `backend/cloudflare/index.js` |
+| Database (production) | Cloudflare D1 (SQLite) | migration ใน `backend/cloudflare/migrations/` |
+| Backend (ใช้พัฒนาในเครื่อง) | Express.js + `pg` (PostgreSQL) | `backend/src/` |
+| Database (ใช้พัฒนาในเครื่อง) | PostgreSQL | `database/` |
+| การตั้งค่า URL ของ API ฝั่งหน้าเว็บ | ไฟล์เดียว | `frontend/js/config.js` |
+
+ข้อแตกต่างจากเอกสารเป้าหมายด้านล่าง:
+
+- **ไม่มีข้อมูลเมนูอาหาร (Menus)** ไม่มีตาราง และไม่มี endpoint `/api/menus` หรือ `/api/vendors/:id/menus`
+- **ไม่มีชั้น Controllers / Services / Repositories** Express ใช้เฉพาะ `routes/` ที่เรียกฐานข้อมูลโดยตรง และ Worker เป็นไฟล์เดียว
+- ฐานข้อมูลที่ใช้เผยแพร่จริงคือ D1 ไม่ใช่ PostgreSQL
+- Worker ตั้ง `Cache-Control: public, max-age=300` เฉพาะคำตอบที่สำเร็จ และจำกัดคำค้นหา `search` ไม่เกิน 100 ตัวอักษร
+- GitHub Actions (`.github/workflows/pages-deployment.yml`) รัน smoke test (`npm test` ใน `backend/`) แล้ว deploy เฉพาะหน้าเว็บขึ้น Cloudflare Pages ส่วน Worker ต้อง deploy เองด้วย `npx wrangler deploy` จาก `backend/cloudflare/`
+
 ## 1. ภาพรวมของระบบ (System Overview)
 
 โครงการ CanteensWeb-TU100 เป็นเว็บไซต์สำหรับแสดงข้อมูลโรงอาหาร ร้านค้า และเมนูอาหารภายในมหาวิทยาลัยธรรมศาสตร์ ศูนย์รังสิต

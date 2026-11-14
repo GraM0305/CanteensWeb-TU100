@@ -1,6 +1,7 @@
 
 const express = require("express");
 const pool = require("../config/db");
+const { withImageUrl } = require("../config/image");
 
 const router = express.Router();
 
@@ -97,6 +98,7 @@ router.get("/", async (req, res) => {
         v.is_halal,
         v.opening_hours,
         v.starting_price,
+        v.image_key,
         v.created_at
       FROM vendors v
       INNER JOIN canteens c
@@ -113,7 +115,7 @@ router.get("/", async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: result.rows,
+      data: result.rows.map(withImageUrl),
     });
   } catch (error) {
     console.error("Get vendors error:", error.message);
@@ -157,6 +159,7 @@ router.get("/:id", async (req, res) => {
           v.is_halal,
           v.opening_hours,
           v.starting_price,
+          v.image_key,
           v.created_at
         FROM vendors v
         INNER JOIN canteens c
@@ -177,7 +180,7 @@ router.get("/:id", async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: result.rows[0],
+      data: withImageUrl(result.rows[0]),
     });
   } catch (error) {
     console.error("Get vendor error:", error.message);
