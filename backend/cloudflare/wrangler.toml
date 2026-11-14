@@ -7,3 +7,8 @@ workers_dev = true
 binding = "DB"
 database_name = "canteensweb-tu"
 database_id = "91958926-7eb2-4732-867c-02f865ec027d"
+
+[vars]
+# Public base URL of the vendor photos (no trailing slash).
+# Served by Cloudflare Pages from frontend/images. Leave empty to disable photos.
+IMAGE_BASE_URL = "https://canteensweb-tu100.pages.dev/images"

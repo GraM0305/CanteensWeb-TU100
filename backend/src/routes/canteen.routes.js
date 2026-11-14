@@ -1,6 +1,7 @@
 
 const express = require("express");
 const pool = require("../config/db");
+const { withImageUrl } = require("../config/image");
 
 const router = express.Router();
 
@@ -107,6 +108,7 @@ router.get("/:id/vendors", async (req, res) => {
           is_halal,
           opening_hours,
           starting_price,
+          image_key,
           created_at
         FROM vendors
         WHERE canteen_id = $1
@@ -117,7 +119,7 @@ router.get("/:id/vendors", async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: result.rows,
+      data: result.rows.map(withImageUrl),
     });
   } catch (error) {
     console.error("Get canteen vendors error:", error.message);

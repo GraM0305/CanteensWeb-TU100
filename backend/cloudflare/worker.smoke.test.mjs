@@ -93,3 +93,54 @@ test("non-GET methods are rejected with 405", async () => {
   const res = await call("/api/canteens", { DB: fakeDb() }, "POST");
   assert.equal(res.status, 405);
 });
+
+const vendorRow = (overrides = {}) => ({
+  id: 1,
+  canteen_id: 1,
+  name: "Test vendor",
+  category: "ข้าวราดแกง",
+  is_halal: 1,
+  opening_hours: null,
+  starting_price: 40,
+  image_key: "vendors/12.webp",
+  created_at: "2026-01-01",
+  ...overrides,
+});
+
+test("vendor with image_key gets an image_url and no image_key", async () => {
+  const env = {
+    DB: fakeDb([vendorRow()]),
+    IMAGE_BASE_URL: "https://img.example.test/",
+  };
+  const body = await (await call("/api/vendors/1", env)).json();
+  assert.equal(body.data.image_url, "https://img.example.test/vendors/12.webp");
+  assert.equal("image_key" in body.data, false);
+  assert.equal(body.data.is_halal, true);
+});
+
+test("image_url is null when vendor has no photo", async () => {
+  const env = {
+    DB: fakeDb([vendorRow({ image_key: null })]),
+    IMAGE_BASE_URL: "https://img.example.test",
+  };
+  const body = await (await call("/api/canteens/1/vendors", env)).json();
+  assert.equal(body.data[0].image_url, null);
+});
+
+test("image_url is null when IMAGE_BASE_URL is not configured", async () => {
+  const env = { DB: fakeDb([vendorRow()]) };
+  const body = await (await call("/api/vendors", env)).json();
+  assert.equal(body.data[0].image_url, null);
+});
+
+test("image key path segments are URL-encoded", async () => {
+  const env = {
+    DB: fakeDb([vendorRow({ image_key: "vendors/a b#1.webp" })]),
+    IMAGE_BASE_URL: "https://img.example.test",
+  };
+  const body = await (await call("/api/vendors/1", env)).json();
+  assert.equal(
+    body.data.image_url,
+    "https://img.example.test/vendors/a%20b%231.webp"
+  );
+});
