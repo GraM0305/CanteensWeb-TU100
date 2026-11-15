@@ -11,6 +11,12 @@ export const CanteenMap = (() => {
 
   let map = null;
   let markerGroup = null;
+  let watchId = null;
+  let userMarker = null;
+  let accuracyCircle = null;
+  let hasCenteredOnUser = false;
+  let touching = false;
+  let pendingPosition = null;
 
   const MAP_CENTER = [14.0735, 100.6050];
   const MAP_ZOOM = 15;
@@ -21,10 +27,27 @@ export const CanteenMap = (() => {
 
     if (map) return;
 
-    map = L.map("map").setView(
+    map = L.map("map", {
+      touchZoom: true,
+      dragging: true,
+      bounceAtZoomLimits: false
+    }).setView(
       MAP_CENTER,
       MAP_ZOOM
     );
+
+    // ระหว่างที่นิ้วแตะแผนที่ ห้ามอัปเดต layer (หมุด/วงกลม) เพราะจะรบกวน pinch-zoom
+    // เก็บตำแหน่งล่าสุดไว้ แล้วค่อยวาดเมื่อยกนิ้ว
+    const container = map.getContainer();
+    const onTouchEnd = event => {
+      if (event.touches.length === 0) {
+        touching = false;
+        flushPosition();
+      }
+    };
+    container.addEventListener("touchstart", () => { touching = true; }, { passive: true });
+    container.addEventListener("touchend", onTouchEnd, { passive: true });
+    container.addEventListener("touchcancel", onTouchEnd, { passive: true });
 
     L.tileLayer(
       "https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png",
@@ -225,10 +248,132 @@ export const CanteenMap = (() => {
   }
 
 
+  // ===== ตำแหน่งผู้ใช้แบบ real time (อยู่ในเบราว์เซอร์เท่านั้น) =====
+  function startTracking({ onUpdate, onError } = {}) {
+
+    if (!map || watchId !== null) return;
+
+    if (!("geolocation" in navigator)) {
+      onError?.("UNSUPPORTED");
+      return;
+    }
+
+    hasCenteredOnUser = false;
+
+    watchId = navigator.geolocation.watchPosition(
+      position => {
+        pendingPosition = position;
+        onPositionUpdate = onUpdate;
+        if (!touching) flushPosition();
+      },
+      error => {
+        const code =
+          error.code === 1 ? "DENIED" :
+          error.code === 2 ? "UNAVAILABLE" : "TIMEOUT";
+
+        // ปฏิเสธสิทธิ์ = หยุดติดตาม; ข้อผิดพลาดอื่นให้ลองต่อ
+        if (code === "DENIED") stopTracking();
+
+        onError?.(code);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 5000,
+        timeout: 20000
+      }
+    );
+
+  }
+
+
+  let onPositionUpdate = null;
+
+  function flushPosition() {
+
+    const position = pendingPosition;
+    pendingPosition = null;
+
+    if (!position || !map || watchId === null) return;
+
+    {
+        const latlng = [
+          position.coords.latitude,
+          position.coords.longitude
+        ];
+
+        if (!userMarker) {
+          userMarker = L.marker(latlng, {
+            icon: L.divIcon({
+              className: "user-location-marker",
+              html: '<div class="user-location-dot"></div>',
+              iconSize: [18, 18],
+              iconAnchor: [9, 9]
+            }),
+            title: "ตำแหน่งของคุณ",
+            alt: "ตำแหน่งของคุณ",
+            zIndexOffset: 1000,
+            interactive: false,
+            keyboard: false
+          }).addTo(map);
+
+          accuracyCircle = L.circle(latlng, {
+            radius: position.coords.accuracy,
+            color: "#f97316",
+            weight: 1,
+            fillColor: "#f97316",
+            fillOpacity: 0.12,
+            interactive: false
+          }).addTo(map);
+        } else {
+          userMarker.setLatLng(latlng);
+          accuracyCircle.setLatLng(latlng);
+          accuracyCircle.setRadius(position.coords.accuracy);
+        }
+
+        // เลื่อนแผนที่ไปหาผู้ใช้เฉพาะครั้งแรกเท่านั้น
+        if (!hasCenteredOnUser) {
+          hasCenteredOnUser = true;
+          map.setView(latlng, Math.max(map.getZoom(), 17), { animate: false });
+        }
+
+        onPositionUpdate?.({
+          latitude: latlng[0],
+          longitude: latlng[1],
+          accuracy: position.coords.accuracy
+        });
+    }
+
+  }
+
+
+  function stopTracking() {
+
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+
+    pendingPosition = null;
+    userMarker?.remove();
+    accuracyCircle?.remove();
+    userMarker = null;
+    accuracyCircle = null;
+
+  }
+
+
+  function isTracking() {
+    return watchId !== null;
+  }
+
+
   return {
     init,
     renderMarkers,
-    focus
+    focus,
+    startTracking,
+    stopTracking,
+    isTracking
   };
 
 })();
