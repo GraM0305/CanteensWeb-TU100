@@ -405,3 +405,75 @@
     transition: none;
   }
 }
+
+/* แถวช่วงเวลา: ซ่อนแถบเลื่อนที่ดูไม่สวย ใช้ลูกศรบอกแทน */
+.period-filters {
+  scrollbar-width: none;
+}
+
+.period-filters::-webkit-scrollbar {
+  display: none;
+}
+
+/* ลูกศรบอกว่าเลื่อนต่อได้ */
+.scroll-hint-host {
+  position: relative;
+}
+
+.scroll-hint {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-forest-green);
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 20%);
+  cursor: pointer;
+}
+
+.scroll-hint[hidden] {
+  display: none;
+}
+
+.scroll-hint--vertical {
+  bottom: 0.75rem;
+  left: 50%;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  font-size: 1.5rem;
+  transform: translateX(-50%);
+  animation: scroll-hint-bounce 1.6s ease-in-out infinite;
+}
+
+.scroll-hint--horizontal {
+  top: 0;
+  right: 0;
+  height: 2.5rem;
+  width: 2rem;
+  border: 0;
+  border-radius: 0 9999px 9999px 0;
+  background: linear-gradient(to right, rgb(255 255 255 / 0%), var(--color-white) 55%);
+  box-shadow: none;
+  font-size: 1.5rem;
+}
+
+@keyframes scroll-hint-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-hint--vertical { animation: none; }
+}
+
+.canteen-card__match {
+  margin: 0 1rem 0.5rem;
+  color: var(--color-fresh-green);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}

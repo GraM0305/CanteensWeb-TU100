@@ -48,7 +48,7 @@ export function renderCanteenList({
       createElement(
         "p",
         "empty-state",
-        "ไม่พบโรงอาหารที่ตรงกับการค้นหา"
+        "ไม่พบโรงอาหารที่ตรงกับการค้นหาหรือตัวกรอง"
       )
     );
     return;
@@ -105,7 +105,17 @@ export function renderCanteenList({
     detailsLink.href =
       `canteen.html?id=${encodeURIComponent(canteen.id)}`;
 
-    card.append(focusButton, detailsLink);
+    const matchLabel = state.matchLabels.get(canteen.id);
+
+    if (matchLabel) {
+      card.append(
+        focusButton,
+        createElement("p", "canteen-card__match", matchLabel),
+        detailsLink
+      );
+    } else {
+      card.append(focusButton, detailsLink);
+    }
     canteenList.append(card);
   });
 }
