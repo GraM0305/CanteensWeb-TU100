@@ -26,18 +26,23 @@
   <main class="page-shell flex flex-col lg:flex-row w-full lg:h-[calc(100vh-4rem)]">
     <section class="map-panel relative order-1 h-[42vh] min-h-[280px] lg:order-1 lg:flex-1 lg:h-auto lg:min-h-0 bg-slate-100" aria-label="แผนที่โรงอาหาร">
       <div id="map" class="w-full h-full"></div>
+      <div id="locate-status" class="locate-status" role="status" aria-live="polite" hidden></div>
+      <p class="locate-privacy">ตำแหน่งของคุณใช้แสดงบนแผนที่ในเครื่องนี้เท่านั้น ไม่ถูกส่งหรือเก็บไว้</p>
+      <button id="locate-button" type="button" class="locate-button" aria-pressed="false">📍 ตำแหน่งของฉัน</button>
     </section>
 
-    <section class="canteen-sidebar order-2 flex w-full flex-col min-h-[440px] lg:order-2 lg:w-[420px] xl:w-[440px] lg:h-full lg:min-h-0 shrink-0 bg-white border-t lg:border-t-0 lg:border-l border-slate-200">
+    <section class="canteen-sidebar relative order-2 flex w-full flex-col min-h-[440px] lg:order-2 lg:w-[420px] xl:w-[440px] lg:h-full lg:min-h-0 shrink-0 bg-white border-t lg:border-t-0 lg:border-l border-slate-200">
       <div class="search-panel p-4 space-y-3 shadow-sm">
         <div class="relative">
-          <input id="canteen-search" type="search" placeholder="ค้นหาชื่อโรงอาหาร..." aria-label="ค้นหาชื่อโรงอาหาร" class="search-field text-sm">
+          <input id="canteen-search" type="search" placeholder="ค้นหาโรงอาหาร ร้านค้า หรือประเภทอาหาร..." aria-label="ค้นหาชื่อโรงอาหาร ร้านค้า หรือประเภทอาหาร" class="search-field text-sm">
           <span class="absolute left-3 top-3 text-slate-400 text-sm" aria-hidden="true">⌕</span>
         </div>
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs" aria-label="กรองตามช่วงเวลาเปิด">
-          <button type="button" class="period-filter is-active" data-period="ALL" aria-pressed="true">ทั้งหมด</button>
-          <button type="button" class="period-filter" data-period="DAY" aria-pressed="false">☀️ กลางวัน</button>
-          <button type="button" class="period-filter" data-period="NIGHT" aria-pressed="false">🌙 กลางคืน</button>
+        <div id="period-hint-host" class="scroll-hint-host">
+          <div id="period-filters" class="period-filters flex items-center gap-2 overflow-x-auto text-xs" aria-label="กรองตามช่วงเวลาเปิด">
+            <button type="button" class="period-filter is-active" data-period="ALL" aria-pressed="true">ทั้งหมด</button>
+            <button type="button" class="period-filter" data-period="DAY" aria-pressed="false">☀️ กลางวัน</button>
+            <button type="button" class="period-filter" data-period="NIGHT" aria-pressed="false">🌙 กลางคืน</button>
+          </div>
         </div>
       </div>
 

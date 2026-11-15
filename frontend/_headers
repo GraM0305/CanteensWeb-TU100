@@ -1,3 +1,7 @@
 # Vendor photos are versioned by file name (e.g. 78-v1.webp), so cache them long.
 /images/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Geolocation is only for our own pages; block it for embedded/third-party frames.
+/*
+  Permissions-Policy: geolocation=(self), camera=(), microphone=()

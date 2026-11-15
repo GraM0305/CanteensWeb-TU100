@@ -98,6 +98,12 @@
 .mobile-canteen-picker.is-visible {
   display: grid;
   gap: 0.5rem;
+  /* เว้นระยะรอบ dropdown ไม่ให้ชิดขอบจอ */
+  padding: 0.25rem 0.375rem 1.25rem;
+}
+
+.mobile-canteen-picker__options {
+  margin-bottom: 0.5rem;
 }
 
 .mobile-canteen-picker__label {
@@ -109,6 +115,44 @@
 .mobile-canteen-picker__dropdown {
   position: relative;
   min-width: 0;
+}
+
+/* เปิด/ปิดแบบนุ่มนวล: เบราว์เซอร์ที่รองรับ ::details-content จะเลื่อนทั้งตอนเปิดและปิด */
+.mobile-canteen-picker__dropdown {
+  interpolate-size: allow-keywords;
+}
+
+.mobile-canteen-picker__dropdown::details-content {
+  block-size: 0;
+  opacity: 0;
+  overflow: clip;
+  transition:
+    block-size 550ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 450ms ease,
+    content-visibility 550ms allow-discrete;
+}
+
+.mobile-canteen-picker__dropdown[open]::details-content {
+  block-size: auto;
+  opacity: 1;
+}
+
+/* เบราว์เซอร์ที่ยังไม่รองรับ: อย่างน้อยให้ตอนเปิดมีแอนิเมชัน */
+@supports not selector(::details-content) {
+  .mobile-canteen-picker__dropdown[open] .mobile-canteen-picker__options {
+    animation: picker-open 450ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+@keyframes picker-open {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-canteen-picker__dropdown::details-content,
+  .mobile-canteen-picker__indicator { transition: none; }
+  .mobile-canteen-picker__dropdown[open] .mobile-canteen-picker__options { animation: none; }
 }
 
 .mobile-canteen-picker__trigger {
@@ -142,7 +186,7 @@
   flex: 0 0 auto;
   color: var(--color-muted);
   transform: rotate(180deg);
-  transition: transform 150ms ease;
+  transition: transform 550ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .mobile-canteen-picker__dropdown[open] .mobile-canteen-picker__indicator {
@@ -156,10 +200,9 @@
 }
 
 .mobile-canteen-picker__options {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 0.375rem);
-  left: 0;
+  /* อยู่ในลำดับปกติ (ไม่ลอย) เพื่อให้ดันความสูงและมีระยะห่างด้านล่าง ไม่ถูกตัดที่ขอบจอ */
+  position: static;
+  margin-top: 0.375rem;
   width: 100%;
   max-height: min(18rem, 45vh);
   max-height: min(18rem, 45svh);
@@ -272,4 +315,94 @@
 
 
 
+}
+
+/* ===== ตำแหน่งผู้ใช้ (สีส้ม ต่างจากหมุดโรงอาหารสีน้ำเงิน) ===== */
+.user-location-marker {
+  background: transparent;
+  border: 0;
+}
+
+.user-location-dot {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f97316;
+  border: 3px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+.user-location-dot::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: rgba(249, 115, 22, 0.45);
+  animation: user-location-pulse 2s ease-out infinite;
+}
+
+@keyframes user-location-pulse {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(3); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-location-dot::after { animation: none; }
+}
+
+.locate-button {
+  position: absolute;
+  right: 12px;
+  bottom: 34px;
+  z-index: 500;
+  padding: 8px 12px;
+  border-radius: 9999px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.locate-button[aria-pressed="true"] {
+  background: #f97316;
+  border-color: #f97316;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.locate-status,
+.locate-privacy {
+  pointer-events: none; /* ไม่ให้ข้อความบังการสัมผัสแผนที่ */
+}
+
+.locate-status {
+  position: absolute;
+  right: 12px;
+  bottom: 78px;
+  z-index: 500;
+  max-width: 240px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.locate-privacy {
+  position: absolute;
+  right: 12px;
+  bottom: 4px;
+  z-index: 500;
+  max-width: 260px;
+  margin: 0;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #475569;
+  font-size: 10px;
+  line-height: 1.3;
+  text-align: right;
 }

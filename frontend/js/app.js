@@ -1,8 +1,9 @@
-import { getCanteens, getVendors } from "./api.js";
+import { getAllVendors, getCanteens, getVendors } from "./api.js";
 import { renderCanteenDetail } from "./canteen-detail-view.js";
 import { renderCanteenList } from "./canteen-list-view.js";
 import { createElement } from "./dom.js";
 import { CanteenMap } from "./map.js";
+import { initScrollHint } from "./scroll-hint.js";
 import { state } from "./state.js";
 
 const searchInput = document.getElementById("canteen-search");
@@ -22,6 +23,7 @@ async function loadCanteens() {
     apiStatus.textContent =
       `เชื่อมต่อ API สำเร็จ · ${state.canteens.length} โรงอาหาร`;
     filterCanteens();
+    loadVendorsForSearch();
   } catch (error) {
     console.error("Load canteens error:", error);
     apiStatus.textContent = "ไม่สามารถโหลดข้อมูลโรงอาหารได้";
@@ -35,14 +37,84 @@ async function loadCanteens() {
   }
 }
 
+// โหลดร้านทั้งหมดครั้งเดียว เพื่อให้ช่องค้นหาหาจากชื่อร้าน/ประเภทอาหาร/ฮาลาลได้
+async function loadVendorsForSearch() {
+  try {
+    const vendors = await getAllVendors();
+
+    state.vendorsByCanteen = new Map();
+
+    vendors.forEach(vendor => {
+      const list = state.vendorsByCanteen.get(vendor.canteen_id) || [];
+
+      list.push(vendor);
+      state.vendorsByCanteen.set(vendor.canteen_id, list);
+    });
+
+    filterCanteens();
+  } catch (error) {
+    // โหลดร้านไม่ได้ ช่องค้นหายังค้นจากชื่อ/คำอธิบายโรงอาหารได้ตามปกติ
+    console.error("Load vendors for search error:", error);
+  }
+}
+
+// คำค้นที่หมายถึงสถานะฮาลาล (is_halal เป็น boolean จึงเทียบข้อความตรง ๆ ไม่ได้)
+const HALAL_KEYWORDS = ["ฮาลาล", "halal"];
+
+function vendorMatchesQuery(vendor, query) {
+  return (
+    vendor.name.toLowerCase().includes(query) ||
+    (vendor.category || "").toLowerCase().includes(query) ||
+    (vendor.is_halal === true &&
+      HALAL_KEYWORDS.some(
+        keyword => keyword.includes(query) || query.includes(keyword)
+      ))
+  );
+}
+
+// ข้อความบนการ์ดที่บอกจำนวนร้านที่ตรงกับคำค้น (ว่างถ้าไม่มีร้านตรง)
+function buildMatchLabel(vendors, query) {
+  const categoryMatches = vendors.filter(vendor =>
+    (vendor.category || "").toLowerCase().includes(query)
+  );
+
+  if (categoryMatches.length > 0) {
+    const categories = new Set(categoryMatches.map(vendor => vendor.category));
+
+    return categories.size === 1
+      ? `${categoryMatches[0].category} ${categoryMatches.length} ร้าน`
+      : `ประเภทที่ตรงกับคำค้น ${categoryMatches.length} ร้าน`;
+  }
+
+  const otherMatches = vendors.filter(vendor =>
+    vendorMatchesQuery(vendor, query)
+  );
+
+  return otherMatches.length > 0
+    ? `ร้านที่ตรงกับคำค้น ${otherMatches.length} ร้าน`
+    : "";
+}
+
 function filterCanteens() {
   const query = state.searchQuery.trim().toLowerCase();
 
+  state.matchLabels = new Map();
+
   state.filteredCanteens = state.canteens.filter(canteen => {
+    const vendors = state.vendorsByCanteen.get(canteen.id) || [];
     const matchesSearch =
       !query ||
       canteen.name.toLowerCase().includes(query) ||
-      (canteen.description || "").toLowerCase().includes(query);
+      (canteen.description || "").toLowerCase().includes(query) ||
+      vendors.some(vendor => vendorMatchesQuery(vendor, query));
+
+    if (matchesSearch && query) {
+      const label = buildMatchLabel(vendors, query);
+
+      if (label) {
+        state.matchLabels.set(canteen.id, label);
+      }
+    }
     const matchesPeriod =
       state.activePeriod === "ALL" ||
       canteen.operating_period === state.activePeriod;
@@ -189,6 +261,66 @@ periodButtons.forEach(button => {
 });
 
 mobilePickerMedia.addEventListener("change", renderCanteens);
+
+const locateButton = document.getElementById("locate-button");
+const locateStatus = document.getElementById("locate-status");
+const LOCATE_MESSAGES = {
+  UNSUPPORTED: "อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง",
+  DENIED: "ไม่ได้รับอนุญาตให้ใช้ตำแหน่ง กรุณาอนุญาตในการตั้งค่าเบราว์เซอร์",
+  UNAVAILABLE: "ไม่สามารถระบุตำแหน่งได้ในขณะนี้",
+  TIMEOUT: "ระบุตำแหน่งใช้เวลานานเกินไป กำลังลองใหม่..."
+};
+
+function setLocateUi(active) {
+  locateButton.setAttribute("aria-pressed", String(active));
+  locateButton.textContent = active
+    ? "หยุดแสดงตำแหน่ง"
+    : "📍 ตำแหน่งของฉัน";
+}
+
+function showLocateStatus(message) {
+  locateStatus.textContent = message;
+  locateStatus.hidden = !message;
+}
+
+locateButton.addEventListener("click", () => {
+  if (CanteenMap.isTracking()) {
+    CanteenMap.stopTracking();
+    setLocateUi(false);
+    showLocateStatus("");
+    return;
+  }
+
+  setLocateUi(true);
+  showLocateStatus("กำลังค้นหาตำแหน่ง...");
+  CanteenMap.startTracking({
+    onUpdate: () => showLocateStatus(""),
+    onError: code => {
+      showLocateStatus(LOCATE_MESSAGES[code] || "เกิดข้อผิดพลาด");
+      if (!CanteenMap.isTracking()) setLocateUi(false);
+    }
+  });
+});
+
+// หยุดติดตามตำแหน่งเมื่อแท็บถูกซ่อน (ประหยัดแบตและไม่ติดตามโดยผู้ใช้ไม่รู้ตัว)
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && CanteenMap.isTracking()) {
+    CanteenMap.stopTracking();
+    setLocateUi(false);
+    showLocateStatus("หยุดแสดงตำแหน่งเนื่องจากคุณออกจากหน้านี้");
+  }
+});
+
+initScrollHint(
+  document.getElementById("period-filters"),
+  document.getElementById("period-hint-host"),
+  "horizontal"
+);
+initScrollHint(
+  document.querySelector(".canteen-sidebar__content"),
+  document.querySelector(".canteen-sidebar"),
+  "vertical"
+);
 
 CanteenMap.init();
 loadCanteens();
