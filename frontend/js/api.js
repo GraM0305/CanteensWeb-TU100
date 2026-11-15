@@ -34,3 +34,13 @@ export function getVendors(canteenId) {
     `/vendors?canteenId=${encodeURIComponent(canteenId)}`
   );
 }
+
+export async function getAllVendors() {
+  const data = await apiGet("/vendors");
+
+  if (!Array.isArray(data)) {
+    throw new Error("Invalid vendor data received from API");
+  }
+
+  return data;
+}

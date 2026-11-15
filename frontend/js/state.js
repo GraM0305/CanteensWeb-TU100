@@ -10,5 +10,7 @@ export const state = {
   mobilePickerOpen: false,
   vendorCategory: "ALL",
   halalOnly: false,
+  vendorsByCanteen: new Map(),
+  matchLabels: new Map(),
   requestId: 0
 };
