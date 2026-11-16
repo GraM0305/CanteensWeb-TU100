@@ -44,3 +44,11 @@ export async function getAllVendors() {
 
   return data;
 }
+
+export function getCanteen(canteenId) {
+  return apiGet(`/canteens/${encodeURIComponent(canteenId)}`);
+}
+
+export function getCanteenVendors(canteenId) {
+  return apiGet(`/canteens/${encodeURIComponent(canteenId)}/vendors`);
+}

@@ -2,6 +2,8 @@
 @import "./components.css";
 @import "./page-map.css";
 @import "./page-canteen.css";
+@import "./canteen-filters.css";
+@import "./canteen-vendor-card.css";
 
 /* Keep the scrollbar in the same beige and green palette. */
 ::-webkit-scrollbar {
