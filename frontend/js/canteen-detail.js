@@ -17,7 +17,8 @@ const state = {
   canteen: null,
   vendors: [],
   category: "ALL",
-  halal: "ALL"
+  halal: "ALL",
+  search: ""
 };
 
 
@@ -34,6 +35,12 @@ const vendorCount = document.getElementById("vendor-count");
 const categoryFilter = document.getElementById("category-filter");
 const halalFilter = document.getElementById("halal-filter");
 
+const vendorSearch = document.getElementById("vendor-search");
+
+const mobileFilters = document.getElementById("mobile-filters");
+const noticeToggle = document.getElementById("notice-toggle");
+const noticePopover = document.getElementById("notice-popover");
+const pageHeader = document.querySelector(".canteen-page__header");
 
 // =========================================
 // API REQUEST
@@ -98,9 +105,10 @@ function createVendorMedia(vendor) {
 
   const showPlaceholder = () => {
     media.classList.add("vendor-card__media--empty");
-    media.replaceChildren(
-      createElement("span", "vendor-card__placeholder", "🍽️")
-    );
+    const icon = createElement("span", "vendor-card__placeholder", "🍽️");
+
+    icon.setAttribute("aria-hidden", "true");
+    media.replaceChildren(icon);
   };
 
   if (!vendor.image_url) {
@@ -245,12 +253,187 @@ function setupCategoryFilter() {
 }
 
 
+// =========================================
+// PHONE CHIP FILTERS
+// =========================================
+
+// Category chips plus one "ฮาลาล" toggle, shown on every screen size. They share
+// state.category / state.halal with the <select> filters used on larger
+// screens, and are built once so the scroll position of the row is kept.
+function buildMobileFilters() {
+
+  mobileFilters.replaceChildren();
+
+  const halalChip = createElement(
+    "button",
+    "filter-chip filter-chip--halal",
+    "ฮาลาล"
+  );
+
+  halalChip.type = "button";
+  halalChip.dataset.filter = "halal";
+
+  const divider = createElement("span", "filter-chip-divider");
+
+  divider.setAttribute("aria-hidden", "true");
+
+  mobileFilters.append(halalChip, divider);
+
+  // Same order as the <select>: "all" first, then categories A-Z.
+  const categories = [
+    "ALL",
+    ...[
+      ...new Set(
+        state.vendors
+          .map(vendor => vendor.category)
+          .filter(Boolean)
+      )
+    ].sort()
+  ];
+
+  categories.forEach(category => {
+
+    const chip = createElement(
+      "button",
+      "filter-chip",
+      category === "ALL" ? "ทุกประเภท" : category
+    );
+
+    chip.type = "button";
+    chip.dataset.filter = "category";
+    chip.dataset.value = category;
+
+    mobileFilters.append(chip);
+
+  });
+
+  // Arrow + fade at the right edge: tells users the row scrolls sideways.
+  const moreButton = createElement("button", "filter-more", "›");
+
+  moreButton.type = "button";
+  moreButton.setAttribute("aria-label", "เลื่อนดูหมวดหมู่เพิ่มเติม");
+  mobileFilters.append(moreButton);
+
+  const updateMore = () => {
+    moreButton.hidden =
+      mobileFilters.scrollLeft + mobileFilters.clientWidth >=
+      mobileFilters.scrollWidth - 2;
+  };
+
+  moreButton.addEventListener("click", () => {
+    mobileFilters.scrollBy({
+      left: mobileFilters.clientWidth * 0.6,
+      behavior: "smooth"
+    });
+  });
+
+  mobileFilters.addEventListener("scroll", updateMore, { passive: true });
+  window.addEventListener("resize", updateMore);
+
+  mobileFilters.addEventListener("click", event => {
+
+    const chip = event.target.closest(".filter-chip");
+
+    if (!chip) {
+      return;
+    }
+
+    if (chip.dataset.filter === "halal") {
+      // Tap again to clear.
+      state.halal = state.halal === "true" ? "ALL" : "true";
+    } else {
+      state.category = chip.dataset.value;
+    }
+
+    syncFilterUi();
+    renderVendors();
+
+  });
+
+  syncFilterUi();
+  updateMore();
+
+}
+
+
+// Keep the <select>s and the chips showing the same state.
+function syncFilterUi() {
+
+  categoryFilter.value = state.category;
+  halalFilter.value = state.halal;
+
+  mobileFilters.querySelectorAll(".filter-chip").forEach(chip => {
+
+    const pressed = chip.dataset.filter === "halal"
+      ? state.halal === "true"
+      : state.category === chip.dataset.value;
+
+    chip.setAttribute("aria-pressed", String(pressed));
+
+  });
+
+}
+
+
+// =========================================
+// PHONE DATA NOTICE (ⓘ)
+// =========================================
+
+function setupNoticeToggle() {
+
+  const setOpen = open => {
+
+    noticePopover.hidden = !open;
+    noticeToggle.setAttribute("aria-expanded", String(open));
+
+  };
+
+  noticeToggle.addEventListener("click", () => {
+    setOpen(noticePopover.hidden);
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      setOpen(false);
+    }
+  });
+
+}
+
+
+// The sticky filter bar sits right below the sticky page header, so
+// measure the header instead of guessing its height.
+function trackHeaderHeight() {
+
+  const update = () => {
+    document.documentElement.style.setProperty(
+      "--canteen-header-height",
+      `${pageHeader.offsetHeight}px`
+    );
+  };
+
+  update();
+
+  new ResizeObserver(update).observe(pageHeader);
+
+}
+
+
 function setupFilters() {
+
+  vendorSearch?.addEventListener("input", event => {
+
+    state.search = event.target.value;
+
+    renderVendors();
+
+  });
 
   categoryFilter.addEventListener("change", event => {
 
     state.category = event.target.value;
 
+    syncFilterUi();
     renderVendors();
 
   });
@@ -260,6 +443,7 @@ function setupFilters() {
 
     state.halal = event.target.value;
 
+    syncFilterUi();
     renderVendors();
 
   });
@@ -272,6 +456,8 @@ function setupFilters() {
 // =========================================
 
 function getFilteredVendors() {
+
+  const query = state.search.trim().toLowerCase();
 
   return state.vendors.filter(vendor => {
 
@@ -294,7 +480,12 @@ function getFilteredVendors() {
         vendor.is_halal === null);
 
 
-    return matchesCategory && matchesHalal;
+    const matchesSearch =
+      !query ||
+      vendor.name.toLowerCase().includes(query);
+
+
+    return matchesCategory && matchesHalal && matchesSearch;
 
   });
 
@@ -310,6 +501,7 @@ function renderVendors() {
   const vendors = getFilteredVendors();
 
   vendorList.replaceChildren();
+  vendorList.removeAttribute("aria-busy");
 
   vendorCount.textContent =
     `พบ ${vendors.length} ร้าน`;
@@ -321,7 +513,9 @@ function renderVendors() {
       createElement(
         "p",
         "empty-state",
-        "ไม่พบร้านค้าที่ตรงกับเงื่อนไข"
+        state.search.trim()
+          ? `ไม่พบร้านที่ชื่อตรงกับ "${state.search.trim()}"`
+          : "ไม่พบร้านค้าที่ตรงกับเงื่อนไข"
       )
     );
 
@@ -360,37 +554,102 @@ function renderVendors() {
     heading.append(name, category);
 
 
-    const halal = createElement(
-      "p",
-      "vendor-card__fact",
-      `สถานะฮาลาล: ${getHalalLabel(vendor.is_halal)}`
-    );
-
-
-    const hours = createElement(
-      "p",
-      "vendor-card__fact",
-      `เวลาเปิด: ${vendor.opening_hours || "ไม่ระบุ"}`
-    );
-
-
+    // Price first (what people look for), then hours. The halal line is
+    // only shown when the status is known, so "unknown" is not repeated on
+    // nearly every card.
     const price = createElement(
       "p",
-      "vendor-card__fact",
-      `ราคาเริ่มต้น: ${getStartingPriceLabel(vendor.starting_price)}`
+      "vendor-card__fact vendor-card__price",
+      Number.isFinite(vendor.starting_price)
+        ? `เริ่ม ${vendor.starting_price} บาท`
+        : "ไม่ระบุราคา"
+    );
+
+
+    // The clock is decoration; screen readers hear "เวลาเปิด" instead.
+    const hours = createElement(
+      "p",
+      "vendor-card__fact vendor-card__hours"
+    );
+
+    const clock = createElement("span", null, "🕒 ");
+    const hoursLabel = createElement(
+      "span",
+      "visually-hidden",
+      "เวลาเปิด: "
+    );
+
+    clock.setAttribute("aria-hidden", "true");
+    hours.append(
+      clock,
+      hoursLabel,
+      vendor.opening_hours || "ไม่ระบุเวลาเปิด"
     );
 
     card.append(
       createVendorMedia(vendor),
       heading,
-      halal,
-      hours,
-      price
+      price,
+      hours
     );
+
+    if (vendor.is_halal !== null && vendor.is_halal !== undefined) {
+      card.append(
+        createElement(
+          "p",
+          "vendor-card__fact vendor-card__halal",
+          getHalalLabel(vendor.is_halal)
+        )
+      );
+    }
 
     vendorList.append(card);
 
   });
+
+}
+
+
+// =========================================
+// LOADING SKELETON
+// =========================================
+
+// Placeholder shapes shown while the API answers, so the page keeps its
+// layout instead of showing a bare "loading" line.
+function renderSkeleton() {
+
+  canteenInfo.replaceChildren(
+    createElement("div", "skeleton skeleton--title"),
+    createElement("div", "skeleton skeleton--pill"),
+    createElement("div", "skeleton skeleton--line")
+  );
+
+  const cards = Array.from({ length: 3 }, () => {
+
+    const card = createElement("div", "vendor-card vendor-card--skeleton");
+
+    card.append(
+      createElement("div", "vendor-card__media skeleton"),
+      createElement("div", "skeleton skeleton--title"),
+      createElement("div", "skeleton skeleton--pill"),
+      createElement("div", "skeleton skeleton--line")
+    );
+
+    return card;
+
+  });
+
+  vendorList.replaceChildren(...cards);
+  vendorList.setAttribute("aria-busy", "true");
+
+}
+
+
+function clearSkeleton() {
+
+  canteenInfo.replaceChildren();
+  vendorList.replaceChildren();
+  vendorList.removeAttribute("aria-busy");
 
 }
 
@@ -409,6 +668,9 @@ async function init() {
     );
     pageStatus.textContent =
       "กำลังโหลดข้อมูลโรงอาหาร...";
+
+
+    renderSkeleton();
 
 
     // Read canteen ID from URL
@@ -449,7 +711,13 @@ async function init() {
 
     setupCategoryFilter();
 
+    buildMobileFilters();
+
     setupFilters();
+
+    setupNoticeToggle();
+
+    trackHeaderHeight();
 
     renderVendors();
 
@@ -467,6 +735,8 @@ async function init() {
   } catch (error) {
 
     console.error("Canteen detail error:", error);
+
+    clearSkeleton();
 
     pageStatus.textContent =
       `ไม่สามารถโหลดข้อมูลได้: ${error.message}`;
