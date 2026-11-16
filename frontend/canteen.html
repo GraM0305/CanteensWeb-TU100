@@ -11,6 +11,9 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400..800&display=swap">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
@@ -60,20 +63,70 @@
     <section class="canteen-page__vendors bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
 
       <div class="flex justify-between items-center gap-3">
-        <h2 class="font-bold text-lg">
-          ร้านค้าภายในโรงอาหาร
-        </h2>
+        <div class="canteen-page__vendors-title">
+          <h2 class="font-bold text-lg">
+            ร้านค้าภายในโรงอาหาร
+          </h2>
+
+          <!-- Phone only: tap to show the data notice -->
+          <button
+            id="notice-toggle"
+            type="button"
+            class="canteen-page__notice-toggle"
+            aria-expanded="false"
+            aria-controls="notice-popover"
+            aria-label="หมายเหตุเกี่ยวกับราคาและเวลาเปิด-ปิด"
+          >
+            ⓘ
+          </button>
+        </div>
 
         <span
           id="vendor-count"
           class="text-xs text-slate-500"
+          role="status"
+          aria-live="polite"
         >
           0 ร้าน
         </span>
       </div>
 
+      <!-- Phone only: shown when the ⓘ button is tapped -->
+      <p
+        id="notice-popover"
+        class="canteen-page__notice-popover"
+        hidden
+      >
+        ราคาและเวลาเปิด-ปิดอ้างอิงจากแหล่งข้อมูลที่ระบุไว้ โปรดตรวจสอบกับร้านอีกครั้ง
+      </p>
 
-      <!-- Filters -->
+
+      <!-- Search by vendor name -->
+      <div class="canteen-page__search">
+        <label for="vendor-search" class="visually-hidden">ค้นหาร้านค้า</label>
+        <input
+          id="vendor-search"
+          type="search"
+          class="canteen-page__search-input"
+          placeholder="ค้นหาชื่อร้าน"
+          autocomplete="off"
+          enterkeyhint="search"
+          maxlength="100"
+        >
+      </div>
+
+
+      <!-- Chip filters, all screen sizes (rendered by canteen-detail.js) -->
+      <div
+        id="mobile-filters"
+        class="canteen-page__chips"
+        role="group"
+        aria-label="ตัวกรองร้านค้า"
+      >
+      </div>
+
+
+      <!-- Filters (tablet / desktop) -->
       <div class="canteen-page__filters grid grid-cols-1 sm:grid-cols-2 gap-4">
 
         <div>
